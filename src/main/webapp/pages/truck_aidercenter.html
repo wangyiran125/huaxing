@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>车主个人中心</title>
+<link href="css/regist.css" type="text/css" rel="stylesheet" />
+<link href="css/ware.css" type="text/css" rel="stylesheet" />
+<link href="css/headfoot.css" type="text/css" rel="stylesheet" />
+<link href="css/main.css" type="text/css" rel="stylesheet" />
+<link href="css/send.css" type="text/css" rel="stylesheet" />
+<link href="css/theme.css" type="text/css" rel="stylesheet" />
+<script type="text/javascript" src="js/jquery.js"></script>
+<!--[if lt IE 8 ]><script src="js/json2.min.js"></script><![endif]-->
+<script type="text/javascript" src="js/index.js"></script>
+<script type="text/javascript" src="js/jquery.md5.js"></script>
+<script type="text/javascript" src="js/regvalidate.js"></script>
+<script type="text/javascript" src="js/logistics.js"></script>
+<script type="text/javascript" src="js/dictHandler.js"></script>
+<script type="text/javascript" src="js/truck_aidercenter/driver.js"></script>
+<script type="text/javascript" src="js/truck_aidercenter/score.js"></script>
+<script type="text/javascript" src="js/truck_aidercenter/historyorder.js"></script>
+<script type="text/javascript" src="js/truck_aidercenter/truck.js"></script>
+<script type="text/javascript" src="js/pagination.js"></script>
+<script>
+
+var conf = {};
+
+//修改个人信息
+function updateUserInfo(){//覆盖logistics.js中的updateUserInfo函数，主要是为了处理truckLabel
+  var idCard=validateIdCard($("#idCard").val());
+  var mobile=validateMobile("mobile",false);
+  var phone=validateTel();
+  var qq=validateQQ();
+  var email=validateEmail();
+  var name=validaterealName('name','姓名',false);
+  var pass=idCard&&mobile&&phone&&qq&&email&&name;
+	if(pass){
+		$.ajax({
+			type:'put',
+			url:'../api/users',
+			data:JSON.stringify({
+				name:$("#name").val(),
+				idCard:$("#idCard").val(),
+				mobile:$("#mobile").val(),
+				phone:$("#phone").val(),
+				qq:$("#qq").val(),
+				email:$("#email").val(),
+				truckLabel:logisticsUserinfo.truckLabel}),
+			contentType:'application/json',
+			success:function(json){
+				if(json.code == 0){
+					logisticsAlert("您的信息已经修改成功");
+					location.reload();
+				}else{
+					logisticsError(json.description);
+				}
+			},
+            error: function(jqXHR, textStatus, errorThrown){
+                ajaxError(jqXHR, textStatus, errorThrown);
+            }
+			
+		})
+	}else{
+		return;
+	}
+}
+  
+  $(function(){
+    verifyAndDisplayUserInfo();
+
+    loadScoreList(0, PAGE_SIZE);
+    loadHistoryOrderList(0, PAGE_SIZE);
+    loadTruckList(0, PAGE_SIZE);
+    loadDriverList(0, PAGE_SIZE);
+
+    modalNameSpace.truckDeleteModal = new TheModal('truck-list-box', 'delete-truck-btn', '您确认要删除本车辆？');//创建modal对话框对象：删除车辆按钮对话框
+    modalNameSpace.truckDeleteModal.realConfirm = truckRealConfirm;
+
+    modalNameSpace.driverDeleteModal = new TheModal('driver-box', 'delete-driver-btn', '您确认要删除本司机？');//创建modal对话框对象：删除司机按钮对话框
+    modalNameSpace.driverDeleteModal.realConfirm = driverRealConfirm;
+
+    conf.tar = location.search.replace('?tar=','');//地址栏里的指定当前对应的是哪个选项卡
+    // console.log(conf.tar);
+    switch(conf.tar){
+      case 'driver':
+        $('#driver-btn').trigger('click');
+        break;
+      case 'truck':
+        $('#truck-btn').trigger('click');
+        break;
+    }
+  });
+</script>
+</head>
+
+<body>
+<div class="wrapper">
+<!--头部样式代码-->
+<div class="page">
+  <!--HEADER_START-->
+  <div class="head_bj">
+    <div class="head">
+      <div class="head_top clear">
+        <div class="head_top_left">
+          <ol>
+            <li style="margin-left:0px;"><a href="###">北京</a></li>
+            <li><a href="###">加入收藏</a></li>
+            <li><a href="###">了解物流平台</a></li>
+            <li><a href="###">掌上物流</a></li>
+            <li>客服热线  4000  000  000</li>
+          </ol>
+        </div>
+        <div class="head_top_right">
+          <div class="head_right_user"><a id="view_username" href="###"></a></div>
+          <div class="head_right_txt">您好，欢迎来到中国位置</div>
+          <div class="head_right_out"><a href="javascript:void(0)" onclick="logout()">退出</a></div>
+        </div>
+      </div>
+      <div class="head_xia">
+        <div class="logo"><a href="###"><img src="images/logo.png" /></a></div>
+        <div class="head_nav">
+          <ul>
+            <li style="margin-left:0px;" ><a href="./truck_index.html">首页</a></li>
+            <li ><a href="./truck_search_goods.html">我要找货</a></li>
+            <li ><a href="./truck_addplan.html">发布车源</a></li>
+            <li ><a href="./truck_my_goods.html">我的抢单</a></li>
+            <li><a href="./truck_myplan.html">我的车源</a></li>
+            <li><a href="###">车辆监控</a></li>
+            <li class="active"><a href="./truck_aidercenter.html">个人中心</a></li>
+            <li style=" margin-right:0px;"><a href="./feedback.html">意见反馈</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--HEADER_END-->
+  <!--中间部分样式代码-->
+  <div class="center_cont_bj">
+    <div class="center_cont " style="padding-top:10px;">
+      <div class="send_bj">
+        <div class="send_bj_1 clear">
+          <div class="send_list aider_list" style="padding-left:0px; padding-top:0px; height:47px;">
+            <ul>
+              <li class="aider_active"><a href="javascript:void(0);">历史运单</a></li>
+              <li id="truck-btn"><a href="javascript:;">车辆管理</a></li>
+              <li id="driver-btn"><a href="javascript:;">司机管理</a></li>
+              <li onclick="getUserinfo();"><a href="javascript:;">个人信息</a></li>
+              <li><a href="javascript:;">我的积分</a></li>
+              <li><a href="javascript:;">修改密码</a></li>
+            </ul>
+          </div>
+          <!--//历史运单-->
+          <div class="content_box aider_box" style="display:block;">
+            <ul id="historyorder-box">
+              
+            </ul>
+            <!--分页-->
+            <div class="content_page" id="page_container">
+            </div>
+          </div>
+          <!--//车辆管理-->
+          <div class="content_box aider_box">
+            <div class="aidercenter_list">
+              <div><img src="images/pic_7.png" /><a href="./truck_add.html">添加车辆</a></div>
+            </div>
+            <div class="clear content_box" >
+              <ul id="truck-list-box">
+                
+              </ul>
+               <!--分页-->
+            <div class="content_page" id="truck_page_container">
+            </div>
+            </div>
+          </div>
+          <!--//司机管理管理-->
+          <div class="content_box aider_box">
+            <div class="aidercenter_list">
+              <div><img src="images/pic_7.png" /><a href="./truck_add_driver.html">添加司机</a></div>
+            </div>
+            <div class="aider_driver">
+              <ul id="driver-box">
+                <!-- <li>
+                  <div class="driver_1">司机一</div>
+                  <div class="driver_2">电话：13875462134</div>
+                  <div class="driver_3">京AT9243</div>
+                  <div class="driver_4">货车</div>
+                  <div class="driver_5">
+                    <div class="mycar_xiangqing"><a href="MyCarspages4.html">修改信息</a></div>
+                    <div class="mycar_lost"><a href="###">删除信息</a></div>
+                  </div>
+                </li> -->
+              </ul>
+              <!--分页-->
+            <div class="content_page" id="driver_page_container">
+            </div>
+            </div>
+          </div>
+          <!--//个人信息-->
+          <div class="content_box  aider_box">
+            <div class="send_box" style="margin-left:200px;">
+              <form method="post">
+                <table class="send_table">
+                  <tr>
+                    <td class="send_title">用户角色类型:</td>
+                    <td><label id="role"></label></td>
+                  </tr>
+                  <tr>
+                    <td class="send_title">姓名:</td>
+                    <td><input id="name" type="text" class="aider_ipt" onblur="validaterealName('name','姓名',false)" maxlength="255"/><label id="name_promt" class="login_lable"></label></td>
+                  </tr>
+                  <tr>
+                    <td class="send_title">身份证号码:</td>
+                    <td><input id="idCard" type="text" class="aider_ipt" onblur="validateIdCard()"/>
+                        <label id="idCard_promt" class="login_lable"></label></td>
+                  </tr>
+                  <tr>
+                    <td class="send_title">手机号码:</td>
+                    <td><input id="mobile" type="text" class="aider_ipt" onblur="validateMobile('mobile',false)"/>
+                      <label id="mobile_promt" class="login_lable"></label>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="send_title">座机:</td>
+                    <td><input id="phone" type="text" class="aider_ipt" onblur="validateTel()"/>
+                      <label id="phone_promt" class="login_lable"></label>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="send_title">QQ号:</td>
+                    <td><input id="qq" type="text" class="aider_ipt" onblur="validateQQ()" maxlength="255"/>
+                      <label id="qq_promt" class="login_lable"></label>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="send_title">电子邮箱:</td>
+                    <td><input id="email" type="text" class="aider_ipt" onblur="validateEmail()" maxlength="255"/>
+                      <label id="email_promt" class="login_lable"></label></td>
+                  </tr>
+                  
+                </table>
+              </form>
+            </div>
+            <div class="send_submit" onclick="updateUserInfo()"> 确认修改 </div>
+          </div>
+          <!--//我的积分-->
+          
+          <div class="content_box  aider_box">
+            <div style="margin-top:20px; margin-left:30px; font-size:18px; line-height:28px; color:#c46258;">当前积分：<span id="total-score"></span>分</div>
+            <div class="Ingist_table1">
+              <table class="Ingist_table" id="score-box">
+                <tr style="height:40px;">
+                </tr>
+                <!-- <tr>
+                  <td >1</td>
+                  <td >2014/04/17</td>
+                  <td >1</td>
+                  <td >(例如，发布一个货源、完成一个订单等）</td>
+                </tr> -->
+              </table>
+            <div class="content_page" id="score_page_container1">
+            </div>
+            </div>
+          </div>
+          <!--//修改密码-->
+          <div class="content_box aider_box">
+            <div class="send_box" style="margin-left:200px;">
+              <form method="post">
+                <table class="send_table">
+                  <tr>
+                    <td  class="send_title">原始密码:</td>
+                    <td>
+                      <input id="oldPassword" onblur="validateOldPwd()" type="password" class="aider_ipt" />
+                      <label id="oldPassword_promt" class="login_lable"></label>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="send_title">新密码:</td>
+                    <td>
+                      <input id="password" onblur="validatePwd()" type="password" class="aider_ipt" />
+                      <label id="password_promt" class="login_lable"></label>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="send_title">确认新密码:</td>
+                    <td>
+                      <input id="passwordAgain" onblur="validatePwdAgain()" type="password" class="aider_ipt" />
+                      <label id="passwordAgain_promt" class="login_lable"></label>
+                    </td>
+                  </tr>
+                </table>
+              </form>
+            </div>
+            <div id="updatePwd" onclick="updatePwd()" class="send_submit"> 确认修改 </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!--尾部样式代码-->
+  <!--FOOTER_START-->
+<div id="bottom-bj-wrap"></div>
+  <!--FOOTER_END-->
+</div>
+
+</body>
+</html>

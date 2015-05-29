@@ -1,0 +1,135 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>注册页面</title>
+    <link href="css/regist.css" type="text/css" rel="stylesheet" />
+    <link href="css/main.css" type="text/css" rel="stylesheet" />
+    <link href="css/headfoot.css" type="text/css" rel="stylesheet" />
+    <link href="css/theme.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="js/jquery.js"></script>
+    <!--[if lt IE 8 ]><script src="js/json2.min.js"></script><![endif]-->
+    <script type="text/javascript" src="js/jquery-form.js"></script>
+    <script type="text/javascript" src="js/jquery.md5.js"></script>
+    <script type="text/javascript" src="js/logistics.js"></script>
+    <script type="text/javascript" src="js/regvalidate.js"></script>
+    <script type="text/javascript" src="js/logistics.js"></script>
+
+</head>
+
+<body>
+<div class="regist_box">
+    <div class="regist_top_bj">
+        <div class="regist_top"><img src="images/logo_huanyu.png" /></div>
+    </div>
+    <div class="login_banner_bj" style="height:900px;">
+        <div class="regist_banner" >
+            <div class="login_center">
+                <div class="login_main">
+                    <div class="login_main_top">
+                        <h3>注册新用户</h3>
+                        <p>新用户30秒轻松注册</p>
+                    </div>
+
+                    <div class="login_main_bottom">
+                        <div class="login_anniu ">
+                            <div class="login_main_txt">用户名:</div>
+                            <div>
+                                <input id="username" class="regist_input" onblur="validateUsername()" onfocus="usernameFocus()" type="text" placeholder="请输入用户名" onmouseover="this.style.border='solid 1px #6e783c'" onmouseout="this.style.border='solid 1px #e2e2e2'" />
+                                <label id="username_promt" class="login_lable" style="float:right; display:inline-block;width: 165px; overflow:hidden; margin-top: 4px;"></label>
+                            </div>
+                        </div>
+
+                        <div class="login_anniu">
+                            <div class="login_main_txt">密码:</div>
+                            <div>
+                                <input id="password" class="regist_input" onblur="validatePwd()" onfocus="pwdFocus()" type="password" placeholder="请设置密码" onmouseover="this.style.border='solid 1px #6e783c'" onmouseout="this.style.border='solid 1px #e2e2e2'" />
+                                <label id="password_promt" class="login_lable" style="float:right; display:inline-block;width: 165px; overflow:hidden; margin-top: 4px;"></label>
+                            </div>
+                        </div>
+                        <div class="login_anniu">
+                            <div class="login_main_txt">确认密码：</div>
+                            <div>
+                                <input id="passwordAgain" onfocus="pwdAgainFocus()" onblur="validatePwdAgain()" class="regist_input" type="password" placeholder="请确认密码" onmouseover="this.style.border='solid 1px #6e783c'" onmouseout="this.style.border='solid 1px #e2e2e2'" />
+                                <label id="passwordAgain_promt" class="login_lable"></label>
+                            </div>
+                        </div>
+
+
+
+                        <div class="login_anniu">
+                            <div class="login_main_txt">用户角色类型:</div>
+                            <div>
+                                <select id="role" class="login_select">
+                                    <option value = "3">货主</option>
+                                    <option value = "2">仓库主</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="login_anniu">
+                            <div class="login_main_txt">姓名:</div>
+                            <div>
+                                <input id="name" class="regist_input" onfocus="nameFocus()" type="text" placeholder="请输入姓名" onmouseover="this.style.border='solid 1px #6e783c'" onmouseout="this.style.border='solid 1px #e2e2e2'" onblur="validaterealName('name','姓名',true)" maxlength="255" />
+                                <label id="name_promt" class="login_lable"></label>
+                            </div>
+                        </div>
+                        <div class="login_anniu">
+                            <div class="login_main_txt">身份证号码:</div>
+                            <div>
+                                <input id="idCard" class="regist_input" onfocus="idCardFocus()" type="text" placeholder="请输入身份证号码" onmouseover="this.style.border='solid 1px #6e783c'" onmouseout="this.style.border='solid 1px #e2e2e2'" onblur="validateIdCard()" />
+                                <label id="idCard_promt" class="login_lable"></label>
+                            </div>
+                        </div>
+                        <div class="login_anniu">
+                            <div class="login_main_txt">手机号:</div>
+                            <div>
+                                <input id="mobile" class="regist_input" onfocus="mobileFocus()" type="text" placeholder="请输入手机号" onmouseover="this.style.border='solid 1px #6e783c'" onmouseout="this.style.border='solid 1px #e2e2e2'" onblur="validateMobile('mobile',true)" />
+                                <label id="mobile_promt" class="login_lable"></label>
+                            </div>
+                        </div>
+                        <div class="login_anniu">
+                            <div class="login_main_txt">座机:</div>
+                            <div><input id="phone" class="regist_input" type="text" placeholder="请输入座机或手机号" onmouseover="this.style.border='solid 1px #6e783c'" onmouseout="this.style.border='solid 1px #e2e2e2'" onblur="validateTel()" /><label id="phone_promt" class="login_lable"></label></div>
+                        </div>
+                        <div class="login_anniu">
+                            <div class="login_main_txt">QQ号:</div>
+                            <div>
+                                <input id="qq" class="regist_input" type="text" placeholder="请输入QQ" onmouseover="this.style.border='solid 1px #6e783c'" onmouseout="this.style.border='solid 1px #e2e2e2'" onblur="validateQQ()" maxlength="255"/>
+                                <label id="qq_promt" class="login_lable"></label>
+                            </div>
+                        </div>
+                        <div class="login_anniu">
+                            <div class="login_main_txt">电子邮箱:</div>
+                            <div>
+                                <input id="email" class="regist_input" type="text" placeholder="请输入邮箱" onmouseover="this.style.border='solid 1px #6e783c'" onmouseout="this.style.border='solid 1px #e2e2e2'" onblur="validateEmail()" maxlength="255"/>
+                                <label id="email_promt" class="login_lable"></label>
+                            </div>
+                        </div>
+                        <div class="login_anniu">
+                            <div class="login_main_txt">头像:</div>
+                            <div>
+                                <form id="f1" action="../api/upload/avatar" enctype="multipart/form-data" method="post">
+                                    <input  type="file" id="avatar" name="avatar" accept="image/*"/>
+                                </form>
+                            </div>
+                            <div id="viewavatar" style="margin-top:10px;"></div>
+                        </div>
+
+                        <div class="login_button" onclick="reg()" style="cursor:pointer;"> <a id="register" href="javascript:void(0)">确认注册</a> </div>
+                        <style>
+                            .login_button:hover {box-shadow: 0 0 3px #000; border: 0;}
+                        </style>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--尾部样式代码-->
+    <!--FOOTER_START-->
+    <div id="bottom-bj-wrap">
+    </div>
+    <!--FOOTER_END-->
+</div>
+</body>
+</html>
+

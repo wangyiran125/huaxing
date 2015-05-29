@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>个人中心</title>
+<link href="css/ware.css" type="text/css" rel="stylesheet" />
+<link href="css/headfoot.css" type="text/css" rel="stylesheet" />
+<link href="css/main.css" type="text/css" rel="stylesheet" />
+<link href="css/send.css" type="text/css" rel="stylesheet" />
+<link href="css/theme.css" type="text/css" rel="stylesheet" />
+<link href="css/regist.css" type="text/css" rel="stylesheet" />
+<script type="text/javascript" src="js/jquery.js"></script>
+<!--[if lt IE 8 ]><script src="js/json2.min.js"></script><![endif]-->
+<script type="text/javascript" src="js/index.js"></script>
+<script type="text/javascript" src="js/jquery.md5.js"></script>
+<script type="text/javascript" src="js/regvalidate.js"></script>
+<script type="text/javascript" src="js/logistics.js"></script>
+<script type="text/javascript" src="js/dictHandler.js"></script>
+<script type="text/javascript" src="js/pagination.js"></script>
+<script type="text/javascript" src="js/truck_aidercenter/historyorder.js"></script>
+<script type="text/javascript" src="js/truck_aidercenter/score.js"></script>
+<script type="text/javascript">
+    var conf = {};
+    $(function(){
+        verifyAndDisplayUserInfo();
+        conf.tar = location.search.replace('?tar=','');
+        switch(conf.tar){
+        	case 'address':
+        		$('#address').trigger('click');
+        		break;
+        };
+        $("#address-box").on('click',".send_check input[type='radio']", function(){
+        	$(this).siblings().attr("checked",false);
+        });
+        loadHistoryOrderList(0, PAGE_SIZE);
+        loadScoreList(0,PAGE_SIZE);
+				
+        modalNameSpace.deleteAdressModal=new TheModal('address-box','delateAdress-btn','确定要删除吗？');
+        modalNameSpace.deleteAdressModal.realConfirm=deleteAddress;        
+    })    
+</script>
+</head>
+
+<body>
+<div class="wrapper"> 
+  <!--头部样式代码-->
+  <div class="page">
+    <!--HEADER_START-->
+    <div class="head_bj">
+      <div class="head">
+        <div class="head_top clear">
+          <div class="head_top_left">
+            <ol>
+              <li style="margin-left:0px;"><a href="###">北京</a></li>
+              <li><a href="###">加入收藏</a></li>
+              <li><a href="###">了解物流平台</a></li>
+              <li><a href="###">掌上物流</a></li>
+              <li>客服热线  4000  000  000</li>
+            </ol>
+          </div>
+          <div class="head_top_right">
+            <div class="head_right_user"><a id="view_username" href="###"></a></div>
+            <div class="head_right_txt">您好，欢迎来到中国位置</div>
+            <div class="head_right_out"><a href="javascript:void(0)" onclick="logout()">退出</a></div>
+          </div>
+        </div>
+        <div class="head_xia">
+          <div class="logo"><a href="###"><img src="images/logo.png" /></a></div>
+          <div class="head_nav">
+            <ul>
+              <li style="margin-left:0px;"><a href="goods_index.html">首页</a></li>
+              <li><a href="goods_add.html">我要发货</a></li>
+              <li><a href="goods_search_warehouse.html">找仓库</a></li>
+              <li><a href="goods_search_truck.html">找车</a></li>
+              <li  class="active"><a href="goods_aidercenter.html">个人中心</a></li>
+              <li><a href="goods_list.html">我的货物</a></li>
+              <li style=" margin-right:0px;"><a href="goods_feedback.html">意见反馈</a></li>          
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--HEADER_END-->
+    <!--中间部分样式代码-->
+    <div class="center_cont_bj">
+      <div class="center_cont " style="padding-top:10px;">
+        <div class="send_bj">
+          <div class="send_bj_1 clear">
+            <div class="send_list aider_list" style="padding-left:0px; padding-top:0px; height:47px;">
+              <ul>
+                <li class="aider_active"><a href="javascript:;">历史运单</a></li>
+                <li id="address" onclick="loadAddress()"><a href="javascript:void(0)">地址管理</a></li>
+                <li id="score" onclick=""><a href="javascript:;">我的积分</a></li>
+                <li id="updpwd" onclick=""><a href="javascript:;">修改密码</a></li>
+                <li id="userinfo" onclick="getUserinfo();"><a href="javascript:void(0)">个人信息</a></li>
+              </ul>
+            </div>
+           <!--//历史运单-->
+          <div class="content_box aider_box" style="display:block;">
+            <ul id="historyorder-box">
+              <!-- <li>
+                <div class="content_list_left"><img src="images/2.png" /></div>
+                <div class="content_list_right">
+                  <h2> <a href="###"><img src="images/pic_3.png" /></a> &nbsp;北京市 &nbsp; <span>→</span> &nbsp; <a href="###"><img src="images/pic_3.png" /></a> &nbsp;北京市 </h2>
+                  <div class="cont_right_list">
+                    <ol>
+                      <li style="padding-left:0px;">设备</li>
+                      <li>38吨</li>
+                      <li>重货</li>
+                      <li>体积不详</li>
+                      <li>整车配货</li>
+                    </ol>
+                  </div>
+                  <p> <a style="padding-left:0px;" href="###">日期：2015/4/12</a></p>
+                  <p>说明：求5辆13米高栏车源，价高急走</p>
+                </div>
+                <div class="mycar_xiangqing"><a href="translation1.html">查看详情</a></div>
+                <div class="mycar_lost"><a href="translation.html">评价</a></div>
+              </li> -->
+              
+            </ul>
+            <div class="content_page" id="page_container">
+            </div>
+          </div>
+            <!--//地址管理-->
+            <div class="content_box aider_box">
+              <div class="aidercenter_list">
+                <div><img src="images/pic_7.png" /><a href="goods_add_address.html">添加地址</a></div>
+              </div>
+              <div class="clear content_box" >
+                <ul id="address-box">
+                  <!-- <li>
+                    <div class="address_left">
+                      <h2> <a href="###"><img src="images/pic_3.png" /></a> &nbsp;河北省廊坊市三河市某大厦A座河北省廊坊市三河市某大厦 &nbsp;</h2>
+                      <div class="send_check" style="margin-top:20px;">
+                        <input type="radio" name="address"/>&nbsp;&nbsp;设为默认出发地<br />
+                        <input type="radio" name="address"/>&nbsp;&nbsp;设为默认到达地
+                      </div>
+                    </div>
+                    <div class="address_right">
+                      <div class="mycar_xiangqing"><a href="address1.html">修改</a></div>
+                      <div class="mycar_lost"><a href="###">删除</a></div>
+                    </div>
+                  </li> -->
+                </ul>
+              </div>
+            </div>
+             <!--//我的积分-->
+          
+          <div class="content_box  aider_box">
+            <div style="margin-top:20px; margin-left:30px; font-size:18px; line-height:28px; color:#c46258;">当前积分：<span id="total-score"></span></div>
+            <div class="Ingist_table1">
+              <table class="Ingist_table" id="score-box">
+                <tr style="height:40px;">
+                </tr>
+                <!-- <tr>
+                  <td >1</td>
+                  <td >2014/04/17</td>
+                  <td >1</td>
+                  <td >(例如，发布一个货源、完成一个订单等）</td>
+                </tr> -->
+              </table>
+               <div class="content_page" id="score_page_container1">
+               </div>
+            </div>
+          </div>
+            <!--//修改密码-->
+            <div class="content_box aider_box">
+              <div class="send_box" style="margin-left:200px;">
+                <form method="post">
+                  <table class="send_table">
+                    <tr>
+                      <td  class="send_title">原始密码:</td>
+                      <td>
+                      	<input id="oldPassword" onblur="validateOldPwd()" type="password" class="aider_ipt" />
+                      	<label id="oldPassword_promt" class="login_lable"></label>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="send_title">新密码:</td>
+                      <td>
+                      	<input id="password" onblur="validatePwd()" type="password" class="aider_ipt" />
+                      	<label id="password_promt" class="login_lable"></label>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="send_title">确认新密码:</td>
+                      <td>
+                      	<input id="passwordAgain" onblur="validatePwdAgain()" type="password" class="aider_ipt" />
+                      	<label id="passwordAgain_promt" class="login_lable"></label>
+                      </td>
+                    </tr>
+                  </table>
+                </form>
+              </div>
+              <div id="updatePwd" onclick="updatePwd()" class="send_submit"> 确认修改 </div>
+            </div>
+            <!--//个人信息-->
+            <div class="content_box  aider_box">
+              <div class="send_box" style="margin-left:200px;">
+                <form method="post">
+                  <table class="send_table">
+                    <!-- <tr>
+                      <td  class="send_title">用户名:</td>
+                      <td>
+                      	<input id="username" onblur="validateUsername(logisticsUserinfo.username)" type="text" class="aider_ipt" />
+                      	<label id="username_promt"></label>
+                      </td>
+                    </tr> -->
+                    <tr>
+                      <td class="send_title">用户角色类型:</td>
+                      <td><label id="role"></label></td>
+                    </tr>
+                    <tr>
+                      <td class="send_title">姓名:</td>
+                      <td><input id="name" type="text" class="aider_ipt" onblur="validaterealName('name','姓名',false)" maxlength="255"/><label id="name_promt" class="login_lable"></label></td>
+                    </tr>
+                    <tr>
+                      <td class="send_title">身份证号码:</td>
+                      <td><input id="idCard" type="text" class="aider_ipt" onblur="validateIdCard()"/>
+                          <label id="idCard_promt" class="login_lable"></label></td>
+                    </tr>
+                    <tr>
+                      <td class="send_title">手机号码:</td>
+                      <td><input id="mobile" type="text" class="aider_ipt" onblur="validateMobile('mobile',false)"/>
+                          <label id="mobile_promt" class="login_lable"></label></td>
+                    </tr>
+                    <tr>
+                      <td class="send_title">座机:</td>
+                      <td><input id="phone" type="text" class="aider_ipt" onblur="validateTel()"/>
+                          <label id="phone_promt" class="login_lable"></label></td>
+                    </tr>
+                    <tr>
+                      <td class="send_title">QQ号:</td>
+                      <td><input id="qq" type="text" class="aider_ipt" onblur="validateQQ()" maxlength="255"/>
+                          <label id="qq_promt" class="login_lable"></label></td>
+                    </tr>
+                    <tr>
+                      <td class="send_title">电子邮箱:</td>
+                      <td><input id="email" type="text" class="aider_ipt" onblur="validateEmail()" maxlength="255"/>
+                          <label id="email_promt" class="login_lable"></label></td>
+                    </tr>
+                    
+                  </table>
+                </form>
+              </div>
+              <div id="updateUserInfo" onclick="updateUserInfo()" class="send_submit"> 确认修改 </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--尾部样式代码-->
+  <!--FOOTER_START-->
+  <div class="copyright">
+    <div class="bottom_bj">
+      <div class="bottom">
+        <ul class="clear">
+          <li style="border-right:1px solid #fff;"><a href="###">中国位置物流平台简介</a></li>
+          <li><a href="###">联系我们</a></li>
+        </ul>
+        <div class="bottom_txt">版权所有©2014北斗导航位置服务(北京)有限公司-京ICP备05085635号Copyright © 2014 ChinaLbs International BV.All rights reserved.</div>
+      </div>
+    </div>
+  </div>
+  <!--FOOTER_END-->
+</div>
+</body>
+</html>

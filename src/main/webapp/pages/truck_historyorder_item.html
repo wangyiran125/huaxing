@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+  <title>我的评价</title>
+  <link href="css/ware.css" type="text/css" rel="stylesheet" />
+  <link href="css/headfoot.css" type="text/css" rel="stylesheet" />
+  <link href="css/main.css" type="text/css" rel="stylesheet" />
+  <link href="css/theme.css" type="text/css" rel="stylesheet" />
+  <link href="css/regist.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="js/jquery.js"></script>
+  <!--[if lt IE 8 ]><script src="js/json2.min.js"></script><![endif]-->
+  <script type="text/javascript" src="js/logistics.js"></script>
+  <script type="text/javascript" src="js/dictHandler.js"></script>
+  <script>
+  var conf = {};
+
+  function loadHistoryOrderItem(id){
+    $.ajax({
+      url: '../api/orders/'+id+'?t='+new Date().getTime(),
+      success: function(json){
+        if(json.code == 0){
+          var item = json.payload;
+
+          $('\
+            <div class="translation_top">\
+              <div class="translation_top_left">\
+                <h2> <a href="###"><img src="images/pic_3.png" /></a> &nbsp;'+parseToDistrictName(item.goods.departureProvinceCode)+'-'+parseToDistrictName(item.goods.departureCityCode)+' &nbsp; <span>→</span> &nbsp; <a href="###"><img src="images/pic_3.png" /></a> &nbsp;'+parseToDistrictName(item.goods.destinationProvinceCode)+'-'+parseToDistrictName(item.goods.destinationCityCode)+' </h2>\
+                <div class="cont_right_list">\
+                  <ol>\
+                  	<li style="padding-left:0px;">'+parseToGoodsName(item.goods.goodsName)+'</li>\
+                  	<li>'+parseToGoodsType(item.goods.goodsType)+'</li>\
+                   	<li>'+parseToShippingType(item.goods.shippingType)+'</li>\
+                    <li>'+item.goods.quantity+'件</li>\
+                    <li>'+item.goods.weight+'吨</li>\
+                    <li>'+item.goods.volume+'立方米</li>\
+                  </ol>\
+                  <ol>\
+                	<li style="padding-left:0px;">日期：'+formatterDate(item.logisticsOrder.orderTime)+'</li>\
+                	<li>联系人：'+item.goods.contactName+'</li>\
+                	<li>联系电话：'+item.goods.contactMobile+'</li>\
+                </ol>\
+                </div>\
+              </div>\
+              <div class="translation_top_right"> 货物信息 </div>\
+            </div>\
+            <div class="translation_top">\
+              <div class="translation_top_left">\
+                <h2><a href="###">'+item.truckOwner.name+'('+item.truckOwner.username+')</a></h2>\
+                <div class="cont_right_list">\
+                	<ol><li></li><ol>\
+                  <ol>\
+                    <li style="padding-left:0px;">手机号：'+item.truckOwner.mobile+'</li>\
+                    <li>'+((item.truckOwner.phone == null || item.truckOwner.phone == "") ? "" : "座机："+item.truckOwner.phone)+'</li>\
+                    <li>积分：'+item.truckOwner.score+'</li>\
+                  </ol>\
+                </div>\
+              </div>\
+              <div class="translation_top_right"> 车主信息</div>\
+            </div>\
+            '+(item.logisticsOrder.truckOwnerIsEvaluated==2 || item.logisticsOrder.goodsOwnerIsEvaluated==2 ? '<div class="translation_top">\
+            '+(logisticsUserinfo.role == 2 || logisticsUserinfo.role == 3 ? item.logisticsOrder.truckOwnerIsEvaluated!=2 ? '<div style="text-align: center; margin-top: 20px;">车主未评论</div>' : '<div class="translation_xing">\
+                <div class="translation_xing_left">评价</div>\
+                <ul>\
+                  <li></li>\
+                  '+(item.logisticsOrder.commentLevelFromTruckOwner < 3 ? '<li></li>' : '')+'\
+                  '+(item.logisticsOrder.commentLevelFromTruckOwner < 2 ? '<li></li>' : '')+'\
+                </ul>\
+              </div>\
+              <div class="translation_xing" style="font-size:14px;">'+item.logisticsOrder.commentFromTruckOwner+'</div>\
+              <div style="float:right; margin-right:30px; font-size:14px; color:#999;">'+formatterDate(item.logisticsOrder.commentTimeFromTruckOwner)+'&nbsp;&nbsp;'+item.truckOwner.name+'</div>' : logisticsUserinfo.role == 4 || logisticsUserinfo.role == 5 ? item.logisticsOrder.goodsOwnerIsEvaluated!=2 ? '<div style="text-align: center; margin-top: 20px;">货主未评论</div>' : '<div class="translation_xing">\
+              <div class="translation_xing_left">评价</div>\
+              <ul>\
+                <li></li>\
+                '+(item.logisticsOrder.commentLevelFromGoodsOwner < 3 ? '<li></li>' : '')+'\
+                '+(item.logisticsOrder.commentLevelFromGoodsOwner < 2 ? '<li></li>' : '')+'\
+              </ul>\
+            </div>\
+            <div class="translation_xing" style="font-size:14px;">'+item.logisticsOrder.commentFromGoodsOwner+'</div>\
+            <div style="float:right; margin-right:30px; font-size:14px; color:#999;">'+formatterDate(item.logisticsOrder.commentTimeFromGoodsOwner)+'&nbsp;&nbsp;'+item.goods.contactName+'</div>' : '') : '')+'\
+            </div>\
+            ').appendTo('#item-box');
+			if(((logisticsUserinfo.role == 2 || logisticsUserinfo.role == 3) && item.logisticsOrder.goodsOwnerIsEvaluated!=2) || ((logisticsUserinfo.role == 4 || logisticsUserinfo.role == 5) && item.logisticsOrder.truckOwnerIsEvaluated!=2)){
+				$("#comment_edit").show();
+			}
+        }else{
+            logisticsError(json.description);
+        }
+      },
+        error: function(jqXHR, textStatus, errorThrown){
+            ajaxError(jqXHR, textStatus, errorThrown);
+        }
+    });
+  }
+
+  $(function(){
+    verifyAndDisplayUserInfo();
+    conf.id = location.search.replace('?id=','');//地址栏里的货物的id值，是字符串
+    conf.successLocation = './aidercenter.html';
+    conf.sendBtn = '#send_submit';
+    conf.commentBox = '#input_comment';
+    conf.commentForm = '#comment-form';
+    loadHistoryOrderItem(conf.id);
+  });
+  </script>
+  <script type="text/javascript" src="js/scoreComment.js"></script>
+</head>
+
+<body>
+  <div class="wrapper">
+    <!--头部样式代码-->
+    <div class="page">
+      <!--HEADER_START-->
+      <div class="head_bj">
+        <div class="head">
+          <div class="head_top clear">
+            <div class="head_top_left">
+              <ol>
+                <li style="margin-left:0px;"><a href="###">北京</a></li>
+                <li><a href="###">加入收藏</a></li>
+                <li><a href="###">了解物流平台</a></li>
+                <li><a href="###">掌上物流</a></li>
+                <li>客服热线  4000  000  000</li>
+              </ol>
+            </div>
+            <div class="head_top_right">
+              <div class="head_right_user"><a id="view_username" href="###"></a></div>
+              <div class="head_right_txt">您好，欢迎来到中国位置</div>
+              <div class="head_right_out"><a href="javascript:void(0)" onclick="logout()">退出</a></div>
+            </div>
+          </div>
+          <div class="head_xia">
+            <div class="logo"><a href="###"><img src="images/logo.png" /></a></div>
+            <div class="head_nav">
+              <ul>
+               <li style="margin-left:0px;" ><a href="./truck_index.html">首页</a></li>
+               <li ><a href="./truck_search_goods.html">我要找货</a></li>
+               <li ><a href="./truck_addplan.html">发布车源</a></li>
+               <li ><a href="./truck_my_goods.html">我的抢单</a></li>
+               <li><a href="./truck_myplan.html">我的车源</a></li>
+               <li><a href="###">车辆监控</a></li>
+               <li class="active"><a href="./truck_aidercenter.html">个人中心</a></li>
+               <li style=" margin-right:0px;"><a href="aider.html">意见反馈</a></li>
+             </ul>
+           </div>
+         </div>
+       </div>
+     </div>
+      <!--HEADER_END-->
+     <!--中间部分样式代码-->
+     <div class="center_cont_bj">
+      <div class="center_cont " style="padding-top:10px;">
+        <div class="send_bj">
+          <div class="send_bj_1">
+            <div class="send_list">
+              <div class="car_list_left">
+                <div class="send_list_left"><img src="images/pic_1.png" /></div>
+                <div  class="send_list_right send_list0ne">历史运单详情</div>
+              </div>
+              <div class="car_list_right">
+                <div  class="send_list_right car_txt">&nbsp;<a href="aidercenter.html">&nbsp;返回</a></div>
+              </div>
+            </div>
+
+            <div class="translation_center" id="item-box"></div>
+            <div id="comment_edit" style="display: none;">
+			<div class="translation_xia">
+              <div class="translation_xing">
+                 <div class="translation_xing_left">评价</div>
+                  <!-- <ul>
+                      <li class=""></li>
+                      <li></li>
+                      <li></li>
+                      <li></li>
+                      <li></li>
+                  </ul> -->
+                  <form id="comment-form">
+                    <label><input type="radio" value="a" name="comment"/>好评</label>
+                    <label><input type="radio" value="b" name="comment"/>中评</label>
+                    <label><input type="radio" value="c" name="comment"/>差评</label>
+                    <label id="comment-form_promt" class="login_lable"></label>
+                  </form>
+              </div>
+              <div class="translation_xia_bottom clear">
+                <textarea id="input_comment" class="xia_textare"  onfocus="this.value=''; this.onfocus=null;" name="comment" cols="25" rows="2" placeholder="字数不得少于十个字左右。"></textarea>
+            </div>
+            </div>
+            <div class="send_submit" id="send_submit"> 确认评论 </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<!--尾部样式代码-->
+<!--FOOTER_START-->
+<div id="bottom-bj-wrap"></div>
+<!--FOOTER_END-->
+</div>
+</body>
+</html>

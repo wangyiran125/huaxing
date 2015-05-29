@@ -1,0 +1,186 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>管理员管理</title>
+
+<link rel="stylesheet" type="text/css" href="css/common.css"/>
+<link rel="stylesheet" type="text/css" href="jeasyui/themes/gray/easyui.css"/>
+<link rel="stylesheet" type="text/css" href="jeasyui/themes/icon.css"/>
+<link rel="stylesheet" type="text/css" href="jeasyui/themes/color.css"/>
+
+<style type="text/css">
+	body {
+		background:#ffffff;
+	}
+</style>
+<script type="text/javascript" src="jeasyui/jquery.min.js"></script>
+<!--[if lt IE 8 ]><script src="js/json2.min.js"></script><![endif]-->
+<script type="text/javascript" src="jeasyui/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="jeasyui/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="js/logistics.js"></script>
+<script type="text/javascript" src="js/jquery.md5.js"></script>
+<script type="text/javascript">
+var rowData = null;
+$(function(){
+	checkUserRole();
+	$('#goods').datagrid({
+		url: "../api/users?type=1",
+		method: "get",
+		onClickRow: function(){
+			rowData = $('#goods').datagrid('getSelected');
+        	$('#goods').datagrid('clearSelections');
+        },
+        onLoadSuccess: function(data){
+        	if(data.code != 0){
+        		$('#goods').datagrid('getPanel').text(data.description);
+        	}
+        }
+    });
+	
+	$("#serch").click(function(){
+		var url = "../api/users?type=1";
+		var name = encodeURIComponent($("#name").val());
+		var phone = $("#phone").val();
+		url += "&name=" + name + "&phone=" + phone;
+		$('#goods').datagrid({
+			url: url,
+			method: "get"
+        });
+	});
+});
+
+function myformatter(date){
+	var y = date.getFullYear();
+	var m = date.getMonth()+1;
+	var d = date.getDate();
+	return y+'-'+(m<10?('0'+m):m)+'-'+(d<10?('0'+d):d);
+}
+
+/* function matterOperator(value, row) {
+	var freeze = "<button class='btn' onclick='freezeOrUnfreezeUser(" + value + ", -1, this)'>冻结</button>";
+	var unfreeze = "<button class='btn-primary' onclick='freezeOrUnfreezeUser(" + value + ", 0, this)'>解冻</button>";
+    return row.isDeleted == -1 ? unfreeze : freeze;
+} */
+
+function freezeOrUnfreezeUser(userId, isDeleted, ele){
+	var url = "../api/users/" + userId;
+	//$(ele).html(isDeleted == -1 ? "解冻" : "冻结");
+}
+
+//弹出dialog，如果位置显示不全，则移动
+function openDialog(dialog, title){
+	if(dialog.hasClass("easyui-dialog")){
+		dialog.dialog('open').dialog('setTitle', title);
+		if(dialog.parent().next().css("top").indexOf("-") >= 0){
+			dialog.parent().next().animate({"top": 10 + "px"},100);
+			dialog.parent().animate({"top": 10 + "px"},100);
+		}
+	}
+	
+}
+
+function addAdmin(){
+	 openDialog($('#dlg-admin'), '添加管理员');
+     $("#admin_form")[0].reset();
+     $("#error_msg").html("");
+}
+function saveAdmin(){
+	var username = $("#admin_username").val();
+	var password = $("#admin_password").val();
+	var role = $("#admin_role").val();
+	// 添加管理员
+    $.ajax({
+        url: '../api/users',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            "username": username,
+            "password": $.md5(password),
+            "role": role
+        }),
+        type: 'POST',
+        async: false,
+        success: function(json){
+        	if(json.code == 0){
+        		$('#dlg-admin').dialog('close');
+        		$('#goods').datagrid('reload');
+        	}else{
+        		$("#error_msg").html(json.description);
+        	}
+        },
+        error: function(json){
+            alert("服务器异常，请稍后尝试！")
+        }
+    });
+}
+</script>
+</head>
+
+<body>
+<div id="contentWrap">
+	<div class="pageTitle"><span><a href="manager_admin.html">人员管理</a> &gt; <a href="manager_admin.html">管理员管理</a></span></div>
+	<div class="pageColumn">
+		<div class="pageButton">
+			姓名：<input type="text" id="name"/>
+			手机号：<input type="text" id="phone"/>
+			<button class="btn" id="serch">搜索</button>
+		</div>
+		<!-- <div id="container" style="width: 100%; height: 400px;"></div> -->
+		<table id="goods" title="管理员信息" style="width:99%;height:450px;" toolbar="#toolbar"
+            pagination="true" pageSize="20" rownumbers="true" fitColumns="true" >
+			<thead>
+				<tr>
+					<th field="username" width="20">用户名</th>
+					<th field="name" width="20">姓名</th>
+					<th field="phone" width="20">手机号</th>
+					<th field="mobile" width="20">电话</th>
+					<th field="email" width="20">邮箱</th>
+					<th field="qq" width="20">QQ</th>
+					<th field="isDeleted" width="10" formatter="matterStatus">状态</th>
+					<th field="userId" width="15" formatter="matterOperator">操作</th>
+				</tr>
+			</thead>
+		</table>
+		<div id="toolbar">
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-add" plain="true"
+	           onclick="addAdmin()">添加管理员</a>
+	    </div>
+	</div>
+</div>
+<div id="dlg-admin" class="easyui-dialog"
+     style="width:370px;height:250px;padding:10px 20px"
+     closed="true" buttons="#dlg-buttons-admin">
+    <form id="admin_form">
+        <table cellpadding="5">
+            <tr>
+                <td>账号:</td>
+                <td>
+                    <input  id="admin_username" type="text" style="width: 250px; height: 23px; text-indent: 5px; border-radius: 4px; border: 1px solid rgba(0, 0, 0, 0.2); margin: 5px;"/>
+                </td>
+            </tr>
+            <tr>
+                <td>密码:</td>
+                <td>
+                    <input  type="password" id="admin_password" style="width: 250px; height: 23px; text-indent: 5px; border-radius: 4px; border: 1px solid rgba(0, 0, 0, 0.2); margin: 5px;"/>
+                </td>
+            </tr>
+            <tr>
+                <td>权限:</td>
+                <td>
+                    <select id="admin_role" style="width: 250px; height: 23px; text-indent: 5px; border-radius: 4px; font-zise:14px; border: 1px solid rgba(0, 0, 0, 0.2); margin: 5px;">
+                    	<option value="1">系统管理员</option>
+                    	<!-- <option value="6">销售管理员</option> -->
+                    </select>
+                </td>
+            </tr>
+        </table>
+        <div style="color: #ff0000;" id="error_msg"></div>
+    </form>
+</div>
+
+<div id="dlg-buttons-admin">
+    <button class="btn-primary" onclick="saveAdmin()">保存</button>
+    <button class="btn" onclick="javascript:$('#dlg-admin').dialog('close')">取消</button>
+</div>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta charset="UTF-8">
+	<title>发货数</title>
+	<link rel="stylesheet" type="text/css" href="css/common.css"/>
+	<link rel="stylesheet" type="text/css" href="jeasyui/themes/gray/easyui.css"/>
+	<link rel="stylesheet" type="text/css" href="jeasyui/themes/icon.css"/>
+	<style type="text/css">
+	body {
+		background:#ffffff;
+	}
+	</style>
+	<script type="text/javascript" src="jeasyui/jquery.min.js"></script>
+	<!--[if lt IE 8 ]><script src="js/json2.min.js"></script><![endif]-->
+	<script type="text/javascript" src="jeasyui/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="jeasyui/locale/easyui-lang-zh_CN.js"></script>
+	<script type="text/javascript" src="js/logistics.js"></script>
+	<script type="text/javascript">
+	$(function() {
+		checkUserRole();
+		var userId=getUrlParam(window.location.href,'userId');
+		var startTime=$.getUrlParam("startTime");
+		var endTime=$.getUrlParam("endTime");
+		var url="/"+userId+"?status=1"+"&startTime="+startTime+"&endTime="+endTime;
+		var btntype="all";
+		if(userId==""||userId==null){
+			btntype=getUrlParam(window.location.href,'btntype');
+			url="?status=1&type="+btntype+"";
+		}
+		$('#goodsnum').datagrid({
+			url:"../api/chart"+url,
+			method:"get",
+			columns:[[
+			{field:'goodsOwnerUsername',title:'货主用户名',width:20},
+			{field:'goodsOwnerName',title:'货主姓名',width:20},
+			{field:'goodsName',title:'货物名称',width:20},
+			{field:'departure',title:'出发地',width:20},
+			{field:'destination',title:'到达地',width:20},
+			{field:'departureTime',title:'发货时间',sortable: true,width:20},
+			{field:'shippingPrice',title:'运价',sortable: true,width:20}]],
+			toolbar:[{
+				id:'btnExport',
+				text:'导出Excel',
+				iconCls:'icon-save',
+				handler:function(){
+					window.location.href="../api/export"+url;
+				}
+			},'-'
+			],
+			onLoadSuccess:function(data){
+				if(data.code!=0){
+					$('#goodsnum').datagrid('getPanel').text(data.description);
+				}
+			}
+		});
+	})
+	</script>
+</head>
+<body>
+	<div class="contentWrap">
+		<div class="pageTitle"><span><a href="chart_goods.html">统计分析</a> &gt; <a href="chart_goods_goodsnum.html">发货数</a></span><span class="back"><a href="javascript:history.go(-1);">&lt;&lt;返回</a></span></div>
+		<div class="pageColumn">
+			<table id="goodsnum" title="货主发货数详情" style="width:99%;height:500px;"
+            pagination="true" pageSize="20" rownumbers="true" fitColumns="true" singleSelect="true" nowrap="false">
+			</table>
+		</div>
+	</div>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>发货统计</title>
+
+<link rel="stylesheet" type="text/css" href="css/common.css"/>
+<link rel="stylesheet" type="text/css" href="jeasyui/themes/gray/easyui.css"/>
+<link rel="stylesheet" type="text/css" href="jeasyui/themes/icon.css"/>
+
+<style type="text/css">
+	body {
+		background:#ffffff;
+	}
+</style>
+<script type="text/javascript" src="jeasyui/jquery.min.js"></script>
+<!--[if lt IE 8 ]><script src="js/json2.min.js"></script><![endif]-->
+<script type="text/javascript" src="jeasyui/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="jeasyui/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="js/logistics.js"></script>
+<script type="text/javascript">
+	var startTime = "",
+		endTime = "";
+	$(function(){
+		checkUserRole();
+		$('#goods').datagrid({
+			url: "../api/chart/user/goods",
+			method: "get",
+            onLoadSuccess: function(data){
+            	if(data.code != 0){
+            		$('#goods').datagrid('getPanel').text(data.description);
+            	}
+            	mypointer();
+            },
+			onClickCell:function(rowIndex, field, value){
+				$('#goods').datagrid('selectRow',rowIndex);
+				var currentRow=$('#goods').datagrid("getSelected");
+				var userId=currentRow.userId;
+				var url="";
+				if(field==="goodsNum"){
+					url="chart_goods_goodsnum.html?userId="+userId+"&startTime="+startTime+"&endTime="+endTime;
+					window.location.href=encodeURI(url);
+					window.location.href.target="right";
+				}
+				if(field==="orderNum"){
+					url="chart_order_ordernum.html?userId="+userId+"&startTime="+startTime+"&endTime="+endTime;
+					window.location.href=encodeURI(url);
+					window.location.href.target="right";
+				}
+			}
+        });
+		var d1, d2 = new Date();
+		$('#startTime').datebox({
+			onSelect: function(date){
+				d1 = date
+				$('#startTime').val(myformatter(date))
+			}
+		}).datebox('calendar').calendar({
+			validator: function(date){
+				return date<=d2;
+			}
+		});
+		$('#endTime').datebox({
+			onSelect: function(date){
+				d2 = date;
+				$('#endTime').val(myformatter(date))
+			}
+		}).datebox('calendar').calendar({
+			validator: function(date){
+				return (!d1 || d1<=date) && date<=new Date();
+			}
+		});
+		$("#serch").click(function(){
+			var url = "../api/chart/user/goods";
+			var name = encodeURIComponent($("#name").val());
+			var phone = $("#phone").val();
+			startTime = $("#startTime").val();
+			endTime = $("#endTime").val();
+			url += "?name=" + name + "&phone=" + phone + "&startTime=" + startTime + "&endTime=" + endTime;
+			//alert(url);
+			$('#goods').datagrid({
+				url: url,
+				method: "get",
+				onLoadSuccess: function(data){
+	            	if(data.code != 0){
+	            		$('#goods').datagrid('getPanel').text(data.description);
+	            	}
+	            	mypointer();
+	            }
+	        });
+		});
+	});
+	
+	function myformatter(date){
+		var y = date.getFullYear();
+		var m = date.getMonth()+1;
+		var d = date.getDate();
+		return y+'-'+(m<10?('0'+m):m)+'-'+(d<10?('0'+d):d);
+	}
+
+	function mypointer()
+	{
+		$("td[field=goodsNum]").css("cursor","pointer");
+		$("td[field=orderNum]").css("cursor","pointer");
+	}
+</script>
+</head>
+
+<body>
+<div id="contentWrap">
+	<div class="pageTitle"><span><a href="chart_order.html">统计分析</a> &gt; <a href="chart_goods.html">发货统计</a></span></div>
+	<div class="pageColumn">
+		<div class="pageButton">
+			姓名：<input type="text" id="name"/>
+			手机号：<input type="text" id="phone"/>
+			开始时间：<input type="text" id="startTime"/>
+			结束时间：<input type="text" id="endTime"/>
+			<button class="btn" id="serch">搜索</button>
+		</div>
+		<!-- <div id="container" style="width: 100%; height: 400px;"></div> -->
+		<table id="goods" title="货主发货统计数据" style="width:99%;height:450px;"
+            pagination="true" pageSize="20" rownumbers="true" fitColumns="true" singleSelect="true" >
+			<thead>
+				<tr>
+					<th field="username" width="20">用户名</th>
+					<th field="name" width="20">姓名</th>
+					<th field="phone" width="20">手机号</th>
+					<th field="goodsNum" width="20">发货数</th>
+					<th field="orderNum" width="20">成单数</th>
+					<th field="score" width="20">积分</th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>司机管理-添加司机</title>
+<link href="css/regist.css" type="text/css" rel="stylesheet" />
+<link href="css/send.css" type="text/css" rel="stylesheet" />
+<link href="css/indexCar.css" type="text/css" rel="stylesheet" />
+<link href="css/headfoot.css" type="text/css" rel="stylesheet" />
+<link href="css/main.css" type="text/css" rel="stylesheet" />
+<link href="css/theme.css" type="text/css" rel="stylesheet" />
+<script type="text/javascript" src="js/jquery.js"></script>
+<!--[if lt IE 8 ]><script src="js/json2.min.js"></script><![endif]-->
+<script type="text/javascript" src="js/jquery.md5.js"></script>
+<script type="text/javascript" src="js/logistics.js"></script>
+<script type="text/javascript" src="js/regvalidate.js"></script>
+<script>
+  var conf = {};
+  conf.jsonData = {};
+  function loadTruckList(from, max){
+    $.ajax({
+      url: '../api/trucks?from='+from+'&max='+max+'&t='+new Date().getTime(),
+      success: function(json){
+        if(json.code == 0){
+          var list = json.payload.list;
+          // console.log(list);
+          if(list.length == 0)return;
+          for (var i = 0; i < list.length; i++) {//TODO 删除车辆按钮的样式需要在main.css里面修改
+            $('<option value="'+list[i].id+'">'+decodeURI(list[i].licensePlateNumber)+'</option>').appendTo('#truck-choose-box');
+          };
+        }else{
+            logisticsError(json.description);
+        }
+      },
+        error: function(jqXHR, textStatus, errorThrown){
+            ajaxError(jqXHR, textStatus, errorThrown);
+        }
+    });
+  }
+
+  function saveDriver() {
+    var pass = false;
+    var username = validateUsername();
+    var password = validatePwd();
+    var passwordAgain = validatePwdAgain();
+    var idCard=validateIdCard();
+    var mobile=validateMobile("mobile",false);
+    pass = username && password && passwordAgain&&idCard&&mobile;
+    if (pass) {
+      var data = $('#add-driver-form').serialize(),
+      arr = data.split('&');
+
+      for (var i = 0; i < arr.length; i++) {
+        var arr2 = arr[i].split('=');
+        conf.jsonData[arr2[0]] = decodeURI(arr2[1]);
+      };
+      conf.jsonData.role = 5;//TODO
+      conf.jsonData.truckLabel = conf.jsonData.username;//TODO
+      conf.jsonData.password = $.md5(conf.jsonData.password);
+      $.ajax({
+          url: '../api/drivers',
+          contentType: 'application/json',
+          data: JSON.stringify(conf.jsonData),
+          type: 'post',
+          success: function (json) {
+              if(json.code == 0){
+                logisticsAlert("司机创建成功！");
+                window.location.href='./truck_aidercenter.html?tar=driver';
+              } else {
+                logisticsError(json.description);
+              }
+              
+          },
+          error: function(jqXHR, textStatus, errorThrown){
+              ajaxError(jqXHR, textStatus, errorThrown);
+          }
+      });
+    } else{
+      return;
+    };
+    
+  }
+
+  $(function(){
+    // $('#bottom-bj-wrap').load('./tmpl/bottom.html');//TODO 等待强哥后台加载底部版权
+    verifyAndDisplayUserInfo();
+
+    loadTruckList(0,100);
+
+    $('#send_submit').click(saveDriver);
+  });
+</script>
+</head>
+
+<body>
+<div class="wrapper">
+<!--头部样式代码-->
+<div class="page">
+  <!--HEADER_START-->
+<div class="head_bj">
+  <div class="head">
+    <div class="head_top clear">
+      <div class="head_top_left">
+        <ol>
+          <li style="margin-left:0px;"><a href="###">北京</a></li>
+          <li><a href="###">加入收藏</a></li>
+          <li><a href="###">了解物流平台</a></li>
+          <li><a href="###">掌上物流</a></li>
+          <li>客服热线  4000  000  000</li>
+        </ol>
+      </div>
+      <div class="head_top_right">
+        <div class="head_right_user"><a id="view_username" href="###"></a></div>
+        <div class="head_right_txt">您好，欢迎来到中国位置</div>
+        <div class="head_right_out"><a href="javascript:void(0)" onclick="logout()">退出</a></div>
+      </div>
+    </div>
+    <div class="head_xia">
+      <div class="logo"><a href="###"><img src="images/logo.png" /></a></div>
+      <div class="head_nav">
+        <ul>
+          <li style="margin-left:0px;" ><a href="./truck_index.html">首页</a></li>
+          <li ><a href="./truck_search_goods.html">我要找货</a></li>
+          <li ><a href="./truck_addplan.html">发布车源</a></li>
+          <li ><a href="./truck_my_goods.html">我的抢单</a></li>
+          <li><a href="./truck_myplan.html">我的车源</a></li>
+          <li><a href="###">车辆监控</a></li>
+          <li class="active"><a href="./truck_aidercenter.html">个人中心</a></li>
+          <li style=" margin-right:0px;"><a href="./feedback.html">意见反馈</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+<!--HEADER_END-->
+<!--中间部分样式代码-->
+<div class="center_cont_bj">
+  <div class="center_cont " style="padding-top:10px;">
+    <div class="send_bj">
+      <div class="send_bj_1">
+        <div class="send_list clear">
+          <div class="car_list_left">
+            <div class="send_list_left"><img src="images/pic_1.png" /></div>
+            <div  class="send_list_right send_list0ne">添加司机信息表</div>
+          </div>
+          <div class="car_list_right">
+            <div  class="send_list_right car_txt">&nbsp;<a href="./truck_aidercenter.html?tar=driver"><&nbsp;返回司机管理 </a></div>
+          </div>
+        </div>
+        <div class="send_box">
+          <form method="post" id="add-driver-form">
+            <table class="send_table" style="padding-left:200px;">
+              <tr>
+                <td  class="send_title">用户名:</td>
+                <td><input name="username" type="text" class="aider_ipt" id="username" onblur="validateUsername()"/> <label id="username_promt" class="login_lable"></label></td>
+              </tr>
+              <tr>
+                <td class="send_title">密码:</td>
+                <td><input name="password" type="password" class="aider_ipt" id="password" onblur="validatePwd()"/><label id="password_promt" class="login_lable"></label></td>
+              </tr>
+              <tr>
+                <td class="send_title">重复密码:</td>
+                <td><input type="password" class="aider_ipt" id="passwordAgain" onblur="validatePwdAgain()"/><label id="passwordAgain_promt" class="login_lable"></label></td>
+              </tr>
+              <tr>
+                <td class="send_title">司机姓名:</td>
+                <td><input name="name" id="name" type="text" class="aider_ipt" onblur="validaterealName('name','司机姓名',false)" maxlength="255"/><label id="name_promt" class="login_lable"></label></td>
+              </tr>
+              <tr>
+                <td class="send_title">身份证号码:</td>
+                <td><input name="idCard" type="text" class="aider_ipt" id="idCard" onblur="validateIdCard()"/><label id="idCard_promt" class="login_lable"></label></td>
+              </tr>
+              <tr>
+                <td class="send_title">联系电话:</td>
+                <td><input name="mobile" type="text" class="aider_ipt" id="mobile" onblur="validateMobile('mobile',false)"/><label id="mobile_promt" class="login_lable"></label></td>
+              </tr>
+              <tr>
+                <td class="send_title">分配状况:</td>
+                <td>
+                <select name="truckId" class="fron_select" id="truck-choose-box">
+                    <!-- <option>京AT9234</option> -->
+                  </select>
+                 </td>
+              </tr>
+            </table>
+          </form>
+        </div>
+        <div class="send_submit" id="send_submit"> 确认添加 </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<!--尾部样式代码-->
+<!--FOOTER_START-->
+<div id="bottom-bj-wrap"></div>
+<!--FOOTER_END-->
+</div>
+</body>
+</html>

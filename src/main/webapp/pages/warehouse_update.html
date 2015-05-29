@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>修改仓库</title>
+<link href="css/regist.css" type="text/css" rel="stylesheet" />
+<link href="css/send.css" type="text/css" rel="stylesheet" />
+<link href="css/headfoot.css" type="text/css" rel="stylesheet" />
+<link href="css/main.css" type="text/css" rel="stylesheet" />
+<link href="css/theme.css" type="text/css" rel="stylesheet" />
+<style type="text/css">
+  .promt{border:1px solid red;}
+</style>
+<script type="text/javascript" src="js/jquery.js"></script>
+<!--[if lt IE 8 ]><script src="js/json2.min.js"></script><![endif]-->
+<script type="text/javascript" src="js/index.js" ></script>
+<script type="text/javascript" src="js/jquery-form.js"></script>
+<script type="text/javascript" src="js/logistics.js"></script>
+<script type="text/javascript" src="js/regvalidate.js"></script>
+<script type="text/javascript" src="js/dictHandler.js"></script>
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=YZC6KcQWrpeArpblSwXOQyuG"></script>
+<script type="text/javascript" src="js/mapGoods.js"></script>
+<script type="text/javascript">
+	//加载仓库信息
+	var warehouse = JSON.parse(sessionStorage.getItem($.getUrlParam('wid')));
+  
+	function loadWarehouseInfo(){
+		if(warehouse == null){
+			return;
+		}
+		updSelectDefualt($('#warehouseType option'),warehouse.type);
+		$('#area').val(warehouse.area);
+		$('#volume').val(warehouse.volume);
+		$('#residualCapacity').val(warehouse.residualCapacity);
+		$('#rent').val(warehouse.rent/100);
+		$('#signarea_positionDescription').val(warehouse.address);
+		$('#companyName').val(warehouse.companyName);
+		$("#district").val(warehouse.district);
+		$('input[name="isCoolStore"]').each(function(){
+			if($(this).val() == warehouse.isCoolStore){
+				$(this).attr('checked',true);
+				return false;
+			}
+		});
+		$('#contactName').val(warehouse.contactName);
+		$('#contactMobile').val(warehouse.contactMobile);
+	}
+	//修改仓库
+	function updateWarehouse(){
+		var warehouseId = warehouse.id;
+		if(!warehouseId){
+			logisticsAlert('您的操作非法！');
+		}else{
+        // 位置必填
+        if($("#signarea_positionDescription").val()==""||$("#signarea_positionDescription").val()==null) {
+          $("#signarea_positionDescription").addClass('promt');
+          return;
+        } 
+        var volume=validateIsFullNum("volume","体积");
+        var area=validateIsFullNum("area","面积");
+        var rent=validateIsFullNum("rent","租金");
+        var contactMobile=validateMobile("contactMobile",true);
+        var contactName=validaterealName('contactName','联系姓名',true);
+        var pass=volume&&area&&rent&&contactMobile&&contactName;
+        if (pass) {
+          var warehouse_ = {
+          type:$("#warehouseType").val(),
+          volume:$("#volume").val(),
+          area:$("#area").val(),
+          district:$("#district").val(),
+          rent:$("#rent").val(),
+          residualCapacity:$("#residualCapacity").val(),
+          picture:pictureUrl,
+          companyName:$("#companyName").val(),
+          isCoolStore:function(){
+            var val_;
+            $("input[name='isCoolStore']").each(function(){
+              if($(this).is(":checked")){
+                val_ = $(this).val();
+                return false;
+              }
+            })
+            return val_;
+          }(),
+          contactName:$("#contactName").val(),
+          contactMobile:$("#contactMobile").val(),
+          latitude: mapNameSpace.latitude,
+          longitude: mapNameSpace.longitude,
+          address: mapNameSpace.address
+      };
+      $.ajax({
+              type:'put',
+              url:'../api/warehouses/'+warehouseId,
+              data:JSON.stringify(warehouse_),
+              dataType:'json',
+              contentType:'application/json',
+              success:function(json){
+                 if(json.code == 0){
+                   logisticsAlert("修改成功");
+                    location.href="warehouse_list.html"
+                 }else{
+                    logisticsError(json.description);
+                 }
+              },
+              error: function(){
+                  //logisticsAlert("服务器异常！")
+              }
+          })
+        } else{
+          return;
+        };
+  			
+		}
+	}
+	$(function(){
+    	verifyAndDisplayUserInfo();
+      mapNameSpace.mapClicked = true;//修改页，已经有了地址经纬度
+    	loadWarehouseType_sel();
+    	loadWarehouseInfo();
+
+      mapNameSpace.longitude = warehouse.longitude;
+      mapNameSpace.latitude = warehouse.latitude;
+      mapNameSpace.address = warehouse.address;
+	})    
+</script>
+</head>
+
+<body>
+<div class="wrapper">
+  <div class="page">
+<!--头部样式代码-->
+ <!--HEADER_START-->
+<div class="head_bj">
+  <div class="head">
+    <div class="head_top clear">
+      <div class="head_top_left">
+        <ol>
+          <li style="margin-left:0px;"><a href="###">北京</a></li>
+          <li><a href="###">加入收藏</a></li>
+          <li><a href="###">了解物流平台</a></li>
+          <li><a href="###">掌上物流</a></li>
+          <li>客服热线  4000  000  000</li>
+        </ol>
+      </div>
+      <div class="head_top_right">
+        <div class="head_right_user"><a href="javascript:void(0)">用户一</a></div>
+        <div class="head_right_txt">您好，欢迎来到中国位置</div>
+        <div class="head_right_out"><a onclick="logout()" href="javascript:void(0)">退出</a></div>
+      </div>
+    </div>
+    <div class="head_xia">
+      <div class="logo"><a href="###"><img src="images/logo.png" /></a></div>
+      <div class="head_nav">
+        <ul>
+          <li style="margin-left:0px;" ><a href="warehouse_index.html">首页</a></li>
+          <li ><a href="warehouse_add_goods.html">我要发货</a></li>
+          <li class="active"><a href="###">发布仓库</a></li>
+          <li><a href="warehouse_list.html">我的仓库</a></li>
+          <li><a href="warehouse_search_truck.html">找车</a></li>
+          <li><a href="goods_aidercenter">个人中心</a></li>
+          <li><a href="warehouse_goods_list.html">我的货物</a></li>
+          <li style=" margin-right:0px;"><a href="feedback.html">意见反馈</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+ <!--HEADER_END-->
+<!--中间部分样式代码-->
+<div class="center_cont_bj">
+  <div class="center_cont " style="padding-top:10px;">
+    <div class="send_bj">
+      <div class="send_bj_1">
+        <div class="send_list">
+          <div class="send_list_left"><img src="images/pic_1.png" /></div>
+          <div  class="send_list_right send_list0ne">修改仓库信息表</div>
+          <div class="send_list0ne" style="text-align:right;padding-right:32px;"><a style="color:#3AAD6E; cursor: pointer;" onclick="javascript:history.go(-1)">&lt;&lt;返回仓库列表</a></div>
+        </div>
+        <div class="send_box">
+            <table class="send_table">
+				<tr class="send_tr">
+                <td class="send_title">仓储类型:</td>
+                <td class="send_selec"><select id="warehouseType" class="fron_select">
+                  </select></td>
+                <td class="send_dian"></td>
+                <td class="send_title">面积:</td>
+                <td class="send_selec"><div class="send_input">
+                    <input id="area" class="sent_ipt_1"  type="text" onblur="validateIsFullNum('area','面积')" maxlength="7"/>
+                  </div>
+                  <div class="send_ipt_2">平方米</div></td>
+                <td class="send_dian">* <label id="area_promt" class="login_lable"></label></td>
+              </tr>
+              <tr class="register_tr">
+                <td class="send_title">体积:</td>
+                <td class="send_selec"><div class="send_input">
+                    <input id="volume" class="sent_ipt_1" type="text" onblur="validateIsFullNum('volume','体积')" maxlength="9"/>
+                  </div>
+                  <div class="send_ipt_2">立方米</div>
+                </td>
+                <td class="send_dian">* <label id="volume_promt" class="login_lable"></label></td>
+                <td class="send_title">所在区域:</td>
+                <td class="send_selec"><div class="send_input">
+                    <input id="district" class="sent_ipt_1"  type="text" maxlength="255"/>
+                  </div>
+                <td class="send_dian"></td>
+              </tr>
+              <tr>
+                <td class="send_title">剩余库存容量:</td>
+                <td><div class="send_input">
+                    <input id="residualCapacity" class="sent_ipt_1"  type="text" onblur="validateIsFullNum('residualCapacity','剩余库存容量')"/>
+                  </div>
+                  <div class="send_ipt_2">立方米</div></td>
+                <td class="send_dian">*</td>
+                <td><label id="residualCapacity_promt" class="login_lable"></label></td>
+              </tr>
+              <tr>
+                 <td class="send_title">租金:</td>
+                 <td colspan="2" ><div class="send_input">
+                    <input id="rent" class="sent_ipt_1"  type="text" onblur="validateIsFullNum('rent','租金')" maxlength="9"/>
+                  </div>
+                  <div class="send_ipt_2" style="width:80px; text-align:left;">元/立方米</div></td>
+               <td class="send_dian">* <label id="rent_promt" class="login_lable"></label></td>
+              </tr>
+              <tr>
+                <td class="send_title">仓库照片:</td>
+                <td colspan="5">
+                	<div>
+                 	<form id="f1" action="../api//upload/images" enctype="multipart/form-data" method="post">
+						<input  type="file" id="picture" multiple  name="images" accept="image/*"/>
+					</form>
+                 </div>
+                </td>
+                <td class="send_dian"></td>
+              </tr>
+              <tr>
+                <td class="send_title">公司名称:</td>
+                <td><input id="companyName" type="text" class="send_ipt" maxlength="255"/></td>
+                <td class="send_dian"></td>
+              </tr>
+              <tr>
+                <td class="send_title">是否有冷库:</td>
+                <td colspan="5"><div class="send_check">
+                    <input value="1" type="radio" name="isCoolStore"/>
+                    &nbsp;&nbsp;有</div>
+                  <div class="send_check">
+                    <input value="2" type="radio" name="isCoolStore"/>
+                    &nbsp;&nbsp;没有</div></td>
+              </tr>
+              <tr class="register_tr">
+                <td class="send_title">联系人:</td>
+                <td><input id="contactName" type="text" class="send_ipt" onblur="validaterealName('contactName','联系姓名',true)" maxlength="255"/></td>
+                <td class="send_dian">*</td>
+                <td><label id="contactName_promt" class="login_lable"></label></td>
+              </tr>
+              <tr>
+                <td class="send_title">联系人电话:</td>
+                <td><input id="contactMobile" type="text" class="send_ipt" onblur="validateMobile('contactMobile',true)"/></td>
+                <td class="send_dian">*</td>
+                <td><label id="contactMobile_promt" class="login_lable"></label></td>
+              </tr>
+              <tr>
+                <td class="send_title">位置</td>
+                <td><input id="signarea_positionDescription" type="text" class="send_ipt" readonly /></td>
+                <td id="mapSearch-wrap"><input type="button" class="send_submit" style="margin: 0; font-size: 12px; height:30px; line-height:30px; background:#61B285; width: 40px; margin-left: 5px;" value="地图" id="mapSearch"></td>
+                <td class="send_dian">*</td>
+                <td id="confirmMap-wrap" style="display:none;"><input type="button" class="send_submit" style="margin: 0; font-size: 12px; height:30px; line-height:30px; background:#0A9B4A; width: 40px; margin-left: 5px;" value="确定" id="confirmMap"></td>
+              </tr>
+              <tr id="map-wrap" style="display:none;">
+                <td class="send_title">地图</td>
+                <td  colspan="4">
+                  <div id="allmap" style="height:400px; width:100%"></div>
+                </td>
+              </tr>
+            </table>
+        </div>
+        <div onclick="updateWarehouse()" class="send_submit"> 确认修改 </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<!--尾部样式代码-->
+<!--FOOTER_START-->
+<div class="bottom_bj">
+  <div class="bottom">
+    <ul class="clear">
+      <li style="border-right:1px solid #fff;"><a href="###">中国位置物流平台简介</a></li>
+      <li><a href="###">联系我们</a></li>
+    </ul>
+    <div class="bottom_txt">版权所有©2014北斗导航位置服务(北京)有限公司-京ICP备05085635号Copyright © 2014 ChinaLbs International BV.All rights reserved.</div>
+  </div>
+</div>
+<!--FOOTER_END-->
+</div>
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>我的车源</title>
+<link href="css/ware.css" type="text/css" rel="stylesheet" />
+<link href="css/indexCar.css" type="text/css" rel="stylesheet" />
+<link href="css/headfoot.css" type="text/css" rel="stylesheet" />
+<link href="css/main.css" type="text/css" rel="stylesheet" />
+<link href="css/theme.css" type="text/css" rel="stylesheet" />
+<script type="text/javascript" src="js/jquery.js"></script>
+<!--[if lt IE 8 ]><script src="js/json2.min.js"></script><![endif]-->
+<script type="text/javascript" src="js/logistics.js"></script>
+<script type="text/javascript" src="js/dictHandler.js"></script>
+<script type="text/javascript" src="js/pagination.js"></script>
+<script>
+  var conf = {};
+  conf.jsonData = {};
+  function loadTruckPlanList(from, max){
+    $.ajax({
+      url: '../api/truckplans?from='+from+'&max='+max+'&t='+new Date().getTime(),
+      success: function(json){
+        if(json.code == 0){
+          var list = json.payload.list;
+          conf.truckPlanList = list;
+           $('#truck-plan-box').html("");
+           showPages(json.payload.total, from, max, "loadTruckPlanList", "page_container");
+          if(! list.length > 0){
+        	  $('#truck-plan-box').html('<center style="padding:30px;color:#969696;">您还没有发布车源！</center>');
+          }else{
+        	   // console.log(list);
+              for (var i = 0; i < list.length; i++) {//TODOs 删除车源按钮的样式需要在main.css里面修改
+            	var phrase = "," + list[i].phrase + ",";
+              	var truckPicture = list[i].truckPicture;
+              	truckPicture = (truckPicture == null || truckPicture == "") ? "images/invalid_pic1.png" : decodeURIComponent(truckPicture).split(',')[0];
+              	var isLocalFreeTruck = list[i].isLocalFreeTruck;
+              	var btnStr = '';
+              	switch(isLocalFreeTruck){
+              		case 1:
+              			btnStr = parseToDistrictName(list[i].departureProvinceCode)+parseToDistrictName(list[i].departureCityCode)+"本地空闲车";
+              			break;
+              		case 2:
+              			btnStr = parseToDistrictName(list[i].departureProvinceCode)+'-'+parseToDistrictName(list[i].departureCityCode)+' &nbsp; <span>→</span> &nbsp;<img src="images/pic_3.png" />&nbsp;'+parseToDistrictName(list[i].destinationProvinceCode)+'-'+parseToDistrictName(list[i].destinationCityCode);
+              			break;
+              	}
+                $('\
+                  <li>\
+                    <div class="content_list_left"><a href="./truck_edit_plan.html?id='+list[i].truckPlanId+'"><img width="125px" src="'+truckPicture+'" /></a></div>\
+                    <div class="content_list_right">\
+                      <h2><a href="./truck_edit_plan.html?id='+list[i].truckPlanId+'"><img src="images/pic_3.png" /> &nbsp;'+btnStr+'</a> </h2>\
+                      <div class="cont_right_list">\
+                        <ol>\
+                          <li style="padding-left:0px;">'+decodeURI(list[i].licensePlateNumber)+'</li>\
+                          <li>'+(list[i].isBackTruck==1 ? '': '不是')+'回程车</li>\
+                          <li>'+(list[i].isLongTerm==1 ? '长期车': '临时车')+'</li>\
+                          <li>'+new Date(list[i].departureTime).getFullYear()+'年'+(new Date(list[i].departureTime).getMonth() + 1)+'月'+new Date(list[i].departureTime).getDate()+'日</li>\
+                          <li class="bill_money">'+((list[i].shippingPrice == 0) ? "价格面议" : (list[i].shippingPrice/100+"元/吨"))+'</li>\
+                        </ol>\
+                      </div>\
+                      <p>'+((list[i].remark == null || list[i].remark == "") ? "暂无详细说明" : decodeURI(list[i].remark).replace(/\+/g, ''))+'</p>\
+                      <div class="content_listbill">\
+                        <ul>\
+                        '+(phrase.indexOf(',1,') != -1 ? '<li class="listbill_1"><a><img src="images/pic_15.png" /></a>求货源</li>' : '')+'\
+                        '+(phrase.indexOf(',2,') != -1 ? '<li class="listbill_2"><a><img src="images/pic_16.png" /></a>有货速联系</li>' : '')+'\
+                        '+(phrase.indexOf(',3,') != -1 ? '<li class="listbill_3"><a><img src="images/pic_17.png" /></a>运价好商量</li>' : '')+'\
+                        '+(phrase.indexOf(',4,') != -1 ? '<li class="listbill_4"><a><img src="images/pic_18.png" /></a>价低急走</li>' : '')+'\
+                        '+(phrase.indexOf(',5,') != -1 ? '<li class="listbill_5"><a><img src="images/pic_19.png" /></a>回程车</li>' : '')+'\
+                        '+(phrase.indexOf(',6,') != -1 ? '<li class="listbill_6"><a><img src="images/pic_20.png" /></a>装车就走</li>' : '')+'\
+                        '+(phrase.indexOf(',7,') != -1 ? '<li class="listbill_7"><a><img src="images/pic_21.png" /></a>求零担</li>' : '')+'\
+                        '+(phrase.indexOf(',8,') != -1 ? '<li class="listbill_8"><a><img src="images/pic_22.png" /></a>晚上也可装车</li>' : '')+'\
+                        </ul>\
+                      </div>\
+                    </div>\
+                    <div class="mycar_xiangqing" data-index="'+i+'" style="margin-top:10px;"><a href="./truck_edit_plan.html?id='+list[i].truckPlanId+'">修改信息</a></div>\
+                    <div onclick="conf.editPlanId='+list[i].truckPlanId+';" data-role="delete-plan-btn" class="mycar_lost mycar_active" style="margin-top:10px;"><a href="javascript:;">删除信息</a></div>\
+                  </li>\
+                  ').appendTo('#truck-plan-box');
+                // list[i]
+              };
+          }
+       
+        }else{
+            logisticsError(json.description);
+        }
+      },
+        error: function(jqXHR, textStatus, errorThrown){
+            ajaxError(jqXHR, textStatus, errorThrown);
+        }
+
+    });
+  }
+
+  function planRealConfirm(){
+    $.ajax({
+        type: 'DELETE',
+        contentType: 'application/json',
+        url: '../api/truckplans/'+conf.editPlanId,
+        success: function(json){
+          if(json.code == 0){
+                logisticsAlert('车源删除成功');
+                $('#truck-plan-box').html('');//TODO 目前是全部刷新列表，要改为不刷新列表，只改单项item
+                modalNameSpace.planDeleteModal.cancelHandler();
+                loadTruckPlanList(0, PAGE_SIZE);
+                
+          }else{
+              logisticsError(json.description);
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown){
+            ajaxError(jqXHR, textStatus, errorThrown);
+        }
+    });
+  }
+
+  $(function(){
+    verifyAndDisplayUserInfo();
+    loadTruckPlanList(0, PAGE_SIZE);
+
+    modalNameSpace.planDeleteModal = new TheModal('truck-plan-box', 'delete-plan-btn', '您确认要删除本车源？');
+    modalNameSpace.planDeleteModal.realConfirm = planRealConfirm;
+
+    $('#truck-plan-box').delegate('.mycar_xiangqing', 'click', function(){
+      sessionStorage.edittingTruckPlan = JSON.stringify(conf.truckPlanList[$(this).attr('data-index')]);
+    });
+
+  });
+</script>
+</head>
+
+<body>
+<div class="wrapper">
+<!--头部样式代码-->
+<div class="page">
+  <!--HEADER_START-->
+  <div class="head_bj">
+    <div class="head">
+      <div class="head_top clear">
+        <div class="head_top_left">
+          <ol>
+            <li style="margin-left:0px;"><a href="###">北京</a></li>
+            <li><a href="###">加入收藏</a></li>
+            <li><a href="###">了解物流平台</a></li>
+            <li><a href="###">掌上物流</a></li>
+            <li>客服热线  4000  000  000</li>
+          </ol>
+        </div>
+        <div class="head_top_right">
+          <div class="head_right_user"><a id="view_username" href="javascript:;"></a></div>
+          <div class="head_right_txt">您好，欢迎来到中国位置</div>
+          <div class="head_right_out"><a href="javascript:void(0)" onclick="logout()">退出</a></div>
+        </div>
+      </div>
+      <div class="head_xia">
+        <div class="logo"><a href="###"><img src="images/logo.png" /></a></div>
+        <div class="head_nav">
+          <ul>
+            <li style="margin-left:0px;" ><a href="./truck_index.html">首页</a></li>
+            <li ><a href="./truck_search_goods.html">我要找货</a></li>
+            <li><a href="./truck_addplan.html">发布车源</a></li>
+            <li ><a href="./truck_my_goods.html">我的抢单</a></li>
+            <li class="active"><a href="./truck_myplan.html">我的车源</a></li>
+            <li><a href="###">车辆监控</a></li>
+            <li><a href="./truck_aidercenter.html">个人中心</a></li>
+            <li style=" margin-right:0px;"><a href="./feedback.html">意见反馈</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--HEADER_END-->
+
+  <!--中间部分样式代码-->
+  <div class="center_cont_bj">
+    <div class="center_cont " style="padding-top:10px;">
+      <div class="send_bj">
+        <div class="send_bj_1">
+          <div class="send_list clear">
+            <div class="car_list_left">
+              <div class="send_list_left"><img src="images/pic_1.png" /></div>
+              <div  class="send_list_right send_list0ne">我的车源</div>
+            </div>
+          </div>
+          <div class="clear content_box" >
+            <ul id="truck-plan-box">
+
+            </ul>
+            <!--分页-->
+            <div class="content_page" id="page_container">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <!--尾部样式代码-->
+    <!--FOOTER_START-->
+    <div id="bottom-bj-wrap"></div>
+    <!--FOOTER_END-->
+</div>
+
+</body>
+</html>

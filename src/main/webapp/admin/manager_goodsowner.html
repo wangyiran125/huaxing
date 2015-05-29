@@ -1,0 +1,80 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>货主管理</title>
+
+<link rel="stylesheet" type="text/css" href="css/common.css"/>
+<link rel="stylesheet" type="text/css" href="jeasyui/themes/gray/easyui.css"/>
+<link rel="stylesheet" type="text/css" href="jeasyui/themes/icon.css"/>
+
+<style type="text/css">
+	body {
+		background:#ffffff;
+	}
+</style>
+<script type="text/javascript" src="jeasyui/jquery.min.js"></script>
+<!--[if lt IE 8 ]><script src="js/json2.min.js"></script><![endif]-->
+<script type="text/javascript" src="jeasyui/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="jeasyui/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="js/logistics.js"></script>
+<script type="text/javascript">
+	var rowData = null;
+	$(function(){
+		checkUserRole();
+		$('#goods').datagrid({
+			url: "../api/users?type=3",
+			method: "get",
+			onClickRow: function(){
+				rowData = $('#goods').datagrid('getSelected');
+	        	$('#goods').datagrid('clearSelections')
+	        },
+	        onLoadSuccess: function(data){
+	        	if(data.code != 0){
+	        		$('#goods').datagrid('getPanel').text(data.description);
+	        	}
+	        }
+	    });
+		
+		$("#serch").click(function(){
+			var url = "../api/users?type=3";
+			var name = encodeURIComponent($("#name").val());
+			var phone = $("#phone").val();
+			url += "&name=" + name + "&phone=" + phone;
+			$('#goods').datagrid({
+				url: url,
+				method: "get"
+	        });
+		});
+	});
+</script>
+</head>
+
+<body>
+<div id="contentWrap">
+	<div class="pageTitle"><span><a href="manager_admin.html">人员管理</a> &gt; <a href="manager_goodsowner.html">货主管理</a></span></div>
+	<div class="pageColumn">
+		<div class="pageButton">
+			姓名：<input type="text" id="name"/>
+			手机号：<input type="text" id="phone"/>
+			<button class="btn" id="serch">搜索</button>
+		</div>
+		<table id="goods" title="货主信息" style="width:99%;height:450px;" 
+            pagination="true" pageSize="20" rownumbers="true" fitColumns="true" singleSelect="true" >
+			<thead>
+				<tr>
+					<th field="username" width="20">用户名</th>
+					<th field="name" width="20">姓名</th>
+					<th field="phone" width="20">手机号</th>
+					<th field="mobile" width="20">电话</th>
+					<th field="email" width="20">邮箱</th>
+					<th field="qq" width="20">QQ</th>
+					<th field="isDeleted" width="10" formatter="matterStatus">状态</th>
+					<th field="userId" width="15" formatter="matterOperator">操作</th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+</div>
+</body>
+</html>

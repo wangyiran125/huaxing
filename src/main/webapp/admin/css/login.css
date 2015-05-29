@@ -1,0 +1,17 @@
+@import "common.css";
+
+input{border:medium none; margin: 0; padding: 0;}
+body{ background:#0a76b0}
+#wrap{ width:960px; margin:0 auto; background:url(../images/login-bg.gif); height:613px;}
+#header{ height:170px;}
+#content-wrap{ width:593px; height:357px; background:url(../images/login-bg.png); margin:0 auto;}
+.content{ width:210px; height:247px; margin:0 auto;}
+#fail_msg{height: 20px; color: red; font-size:14px;}
+.space{ height:83px;}
+.login-btn{ width:68px; height:28px; background:url(../images/login-btn.gif) -6px -6px;}
+.login-btn:hover{ background-position:-6px -49px;}
+.field{ height:50px;}
+.field label{ color:#dbf2ff}
+#btn{text-align:center;}
+.field input{ background:url(../images/login-input.gif); width:159px; height:29px; line-height:29px; text-indent:35px;}
+.field .password{ background-position:0 -29px;}

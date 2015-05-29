@@ -1,0 +1,134 @@
+@charset "utf-8";
+/* CSS Document */
+
+* { margin:0px; padding:0px; }
+html, body{height:100%; overflow-x:hidden;font-family: "Hiragino Sans GB","Microsoft Yahei UI","Microsoft Yahei","微软雅黑",'Segoe UI',Tahoma,"宋体b8b\4f53",SimSun,sans-serif;}
+
+input{border:0px none;}
+img{ border:0 none;}
+*:focus {outline: none;}  
+a{ text-decoration:none;}
+li{ list-style:none;}
+.clear{ clear:both; overflow:hidden; }
+.table{border-collapse:collapse;}
+.wrapper{min-height:100%;height:auto!important;position: relative;}
+.wrapper .page{padding-bottom: 100px;}
+/*中间部分背景*/
+.center_cont_bj{ width:100%; background: url(../images/center_nav_bj.png) repeat; height:auto; padding-bottom:43px;}
+.center_cont{ width:1000px; margin:auto;}
+/*中间部分背景*/
+
+/*中间部分边框阴影*/
+.send_bj{  border:1px solid #f0f0f0; }
+.send_bj_1{ width:1000px;  height:auto; background:#fff;  border:1px solid #e6e6e6;}
+/*中间部分边框阴影*/
+
+.wrapper .copyright{position: absolute;z-index: 5;left: 0;bottom: 0;width: 100%;text-align: center;color: #f2f2f2;}
+
+.send_list{ height:32px; border-bottom:1px solid #e8e8e8; padding-top:15px; padding-left:32px;}
+.send_list_left{ float:left; width:25px; text-align:center;}
+.send_list_right{ float:left;}
+.send_list0ne{ margin-left:10px;color:#999; font-size:14px; line-height:14px;}
+
+
+.send_submit{ width:168px; background:#c46258; border-radius:3px; height:48px; margin:auto; text-align:center; line-height:48px; color:#fff; cursor:pointer; font-size:18px; margin-bottom:40px; margin-top:40px;}
+.send_submit a{ display:block;}
+.send_check{ width:130px; float:left; text-align:left; color:#555; margin-right:10px; font-size:14px;}
+.send_submit:hover {box-shadow: 0px 0px 3px #999;}
+/*我的货物查看详情图标*/
+.mycar_xiangqing{width:137px; cursor:pointer; margin-top:20px; height:36px; background:#6e783c; float:left; text-align:center; line-height:36px; border-bottom:2px solid #5f6834; border-radius:3px;}
+.mycar_xiangqing a{ color:#fff; display:block;}
+.mycar_xiangqing:hover{ background:#849144;  }
+.chang_margin{ margin-top:10px; margin-bottom:10px;}
+.mycar_lost{width:137px; cursor:pointer; margin-top:20px; height:36px; background:#c46258; float:left; text-align:center; line-height:36px; border-bottom:2px solid #b75b52; border-radius:3px;}
+.mycar_lost a{ color:#fff; display:block;}
+.mycar_lost:hover{background:#df7165; }
+.chang_margin ol li.bill_money{color: #c46258;font-size: 20px;line-height: 24px; float:right; margin-right:20px; display:inline-block;}
+
+/*返回车辆返回列表代码*/
+.car_list_left{ float:left; width:40%;}
+.car_list_right{ float:right; width:15%; font-size:14px;}
+.car_txt,.car_txt a{ color:#6e783c;}
+.number{ line-height:30px; margin-top:10px;}
+
+
+
+/*个人中心页面代码*/
+
+.aider_list ul li{ float:left; width:120px;text-align:center; margin-right:0px; line-height:47px; height:47px;}
+.aider_list ul li a{ color:#999; display:block; }
+.aider_listul li a:hover{ border-bottom:2px solid #6e783c; color:#000;}
+
+.aider_box{ display:none;}
+.aider_list ul li.aider_active{border-bottom:2px solid #6e783c; color:#000;}
+.aider_list ul li.aider_active a{color:#000;}
+
+.aidercenter_list{ height:28px; background:#d3d6c4;padding-top:8px; font-size:14px; }
+.aidercenter_list div{ clear:both; overflow:hidden; text-align:center; margin-left:450px;}
+.aidercenter_list div img{ float:left; width:21px; height:21px;}
+.aidercenter_list div a{ color:#6e783c;  display:block; width:80px; float:left;}
+
+.aider_driver ul li{ height:130px; border-bottom:1px solid #e8e8e8; text-align:center; padding:0px; line-height:130px; font-size:14px; color:#b4b4b4; }
+.driver_1{ width:10%; float:left;font-size:16px; color:#222;}
+.driver_2{width:25%; float:left; font-size:20px; color:#6e783c;}
+.driver_3{width:15%; float:left;}
+.driver_4{width:15%; float:left;}
+.driver_5{width:25%; float:left; width:130px; margin-left:70px; display:inline-block;}
+.aider_ipt{ width:230px;;border:1px solid #cbcbcb; height:30px; line-height:30px; padding-left:10px; color:#555; }
+
+.address_left{ width:73%; float:left; padding-left:50px; padding-top:18px; display:inline-block;}
+.address_right{width:17%; float:left; margin:auto; margin-left:20px; display:inline-block;}
+.address_left h2{ font-size:20px; font-weight:500; color:#6e783c;}
+
+.aider_number{ font-size:18px; line-height:36px; margin-left:70px; margin-bottom:30px;}
+/*评价页面代码*/
+.translation_top{ height:120px; border-bottom:1px solid #e8e8e8;}
+.translation_top_left{ width:75%; float:left; padding-left:50px; padding-top:18px;}
+.translation_top_left h2{ color:#959c70; font-weight:500;}
+.translation_top_left h2 a{ color:#959c70; font-weight:500;}
+.translation_top_right{ float:left; width:20%; text-align:center; line-height:110px; font-size:20px; color:#6e783c;}
+.translation_zhong{ background:#f9efee; height:72px; border-bottom:1px solid #e8e8e8; }
+.zhong_color{ line-height:80px; color:#dda49e;}
+.xia_textare{ width:850px; height:90px; border:1px solid #f4f4f4; padding:10px; font-size:14px; line-height:22px;}
+
+.translation_xia_bottom{ margin-left:60px; margin-top:20px;}
+.translation_xing{  height:22px; margin-left:60px; clear:both; overflow:hidden; padding-top:18px;}
+.translation_xing_left{ width:50px; float:left; font-size:14px; line-height:22px; text-align:center; }
+.translation_xing ul{ width:150px; float:left; padding-top:3px;}
+.translation_xing ul li{ width:16px; height:15px; float:left; background:url(../images/pic_24.png)  no-repeat; margin-right:5px; cursor:pointer;}
+
+.Ingist_table1{ margin-left:30px; margin-top:20px; width:930px; border:1px solid #e8e8e8; margin-bottom:20px; text-align:center; border-right:0px none; border-bottom:0px none;}
+.Ingist_table{  width:100%;  border-collapse: collapse; border-spacing: 0;}
+.Ingist_table tr{ height:60px;}
+.Ingist_table tr td {border-right:1px solid #e8e8e8; border-bottom:1px solid #e8e8e8;}
+
+.about_center { padding:20px 120px;}
+.about_center p {  font-size:14px; line-height:32px; color:#666; margin-bottom:30px;}
+.about_center p span{ display:block; font-size:16px;}
+.about_img{margin-bottom:30px; }
+.mian_aboutinde{ text-indent:2em;}
+
+#modal_error {
+    background: #AD443A;
+    text-align: center;
+    width: 600px;
+    padding: 5px 0;
+    color: #FFF;
+    text-shadow: 0 1px 0 rgba(0,0,0,0.25);
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+    font-weight: 300;
+}
+
+#modal_info {
+    background: #35B8BA;
+    text-align: center;
+    width: 600px;
+    padding: 5px 0;
+    color: #FFF;
+    text-shadow: 0 1px 0 rgba(0,0,0,0.25);
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+    font-weight: 300;
+}
+
+
+

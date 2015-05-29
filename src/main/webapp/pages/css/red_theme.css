@@ -1,0 +1,62 @@
+@charset "utf-8";
+/* CSS Document */
+
+/*头部样式代码*/
+.head_bj{background: #fb6e52;}/*头部背景色*/
+.head_top_left ol li, .head_top_left ol li a{color:#ffffff}/*头部左侧文字颜色*/
+.head_right_user,.head_right_user a{ color:white;}/*头部右侧用户名颜色*/
+.head_right_txt {color: white;}/*头部右侧文字颜色*/
+.head_right_out, .head_right_out a{color:#F9BA47}/*退出链接颜色*/
+
+/*首页三大标题样式*/
+.list_txt a{color: #222; font-weight: 300}
+.list_txt a:hover{color:#fb6e52;}
+
+/*头部导航条样式代码*/
+.head_nav ul li a,.head_nav ul li a:hover{ color:#222; font-weight: 300; font-size: 16px}
+.head_nav ul li.active, .head_nav ul li:hover{border-bottom:5px solid #fb6e52;}
+
+/*自主菜单样式代码*/
+.b_choose ul li.choose_active { background: #fb6e52; color:#fff;}
+.choose_a:hover{background: #fb6e52;}
+
+/*列表大标题*/
+.content_list_right h2,.content_list_right h2 a{color: #7B3629; font-size: 18px}
+/*列表第二行标题*/
+.cont_right_list ol li{color: #222; font-size: 14px; font-weight: 600}
+/*列表第三、四行标题*/
+.content_list_right p,.content_list_right p a{color: #999; font-size: 13px; font-weight: 100}
+
+/*价格*/
+.content_list_money{color: #E1634B}
+
+.detailde_bj h3,.address_left h2,.aidercenter_list div a,.car_txt a,.mark_title,.detailde_xia h4{ color:#fb6e52; }
+.aider_list ul li.aider_active { border-bottom: 2px solid #fb6e52;}
+
+/*查询条件标题*/
+.choose_min{font-weight: 600; color: #222; font-size: 13px}
+/*查询条件选项*/
+.b_choose ul li{font-size: 13px; color: #555;}
+
+/*表单标题*/
+.send_title{font-size: 13px; color: #222; font-weight: 600}
+/*表单项目*/
+.send_input, .send_check, .fron_select, .send_textare{font-size: 13px; color: #555; font-weight: 100}
+
+/*按钮样式代码*/
+.mycar_xiangqing{background: #fb6e52;}
+.mycar_lost,.mycar_lost{ background:#fb6e52;}
+.send_submit,.send_submit a{background: #fb6e52;}
+.deta_submit,.deta_submit a{background: #fb6e52;}
+.mywar_submit a{background: #fb6e52;}
+.mywar_delete{background: #fb6e52;}
+.deta_iphone{background: #fb6e52;}
+
+/*尾部样式代码*/
+.bottom_bj{ background:#fb6e52;}
+
+
+
+
+
+

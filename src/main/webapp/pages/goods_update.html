@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>修改货物</title>
+<link href="css/regist.css" type="text/css" rel="stylesheet" />
+<link href="css/send.css" type="text/css" rel="stylesheet" />
+<link href="css/headfoot.css" type="text/css" rel="stylesheet" />
+<link href="css/main.css" type="text/css" rel="stylesheet" />
+<link href="css/theme.css" type="text/css" rel="stylesheet" />
+<style type="text/css">
+	.promt{border:1px solid red;}
+</style>
+<script type="text/javascript" src="js/jquery.js"></script>
+<!--[if lt IE 8 ]><script src="js/json2.min.js"></script><![endif]-->
+<script type="text/javascript" src="js/index.js" ></script>
+<script type="text/javascript" src="js/jquery-form.js"></script>    
+<script type="text/javascript" src="js/logistics.js"></script>
+<script type="text/javascript" src="js/regvalidate.js"></script>
+<script type="text/javascript" src="js/dictHandler.js"></script>
+<script type="text/javascript" src="js/date.js"></script>
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=YZC6KcQWrpeArpblSwXOQyuG"></script>
+<script type="text/javascript" src="js/mapGoods.js"></script>
+<script type="text/javascript">
+
+    $(function(){
+        verifyAndDisplayUserInfo();
+        mapNameSpace.mapClicked = true;//修改页，已经有了地址经纬度
+        //根据参数获取当前数据
+        listGoodsName();
+        listGoodsType();
+        listShippingType();
+        loadDistrict(0,$("#departureprovince"));
+        loadDistrict(0,$("#destinationprovince"));
+        
+        $("#mianyi").click(function(){
+        	if($(this).is(":checked")){
+        		$("#shippingPrice").attr("disabled",true);
+        		$("#shippingPrice").val('');
+            $("#shippingPrice_promt").html("");
+        	}else{
+        		$("#shippingPrice").attr("disabled",false);
+        	}
+        })
+        
+         $("#islongterm").click(function(){
+            	if($(this).is(":checked")){
+            		$("#validity").attr("disabled",true);
+            		$("#validity").val('');
+                $("#validity").removeClass('promt');
+            	}else{
+            		$("#validity").val('选择日期');
+            		$("#validity").attr("disabled",false);
+            	}
+            })
+        $("#departureprovince").change(function(){
+        	$(this).removeClass('promt');
+        	$("#departurecity").empty();
+        	loadDistrict($(this).val(),$("#departurecity"));
+        });
+        $("#destinationprovince").change(function(){
+        	$(this).removeClass('promt');
+        	$("#destinationcity").empty();
+        	loadDistrict($(this).val(),$("#destinationcity"));
+        });
+        //填充货物信息
+        var gid = $.getUrlParam("gid");
+        var goods = JSON.parse(sessionStorage.getItem(gid));
+        $("#signarea_positionDescription").val(goods.goodsAddress);
+        mapNameSpace.longitude = goods.longitude;//mapNameSpace是在logistics.js中定义的命名空间
+        mapNameSpace.latitude = goods.latitude;
+        mapNameSpace.address = goods.goodsAddress;
+        loadGoodsInfo();
+        $("#send_submit").click(function(){
+        	addGoods(goods.id);
+        })
+        //加载货物信息
+        function loadGoodsInfo(){
+        	//起始地--省
+        	updSelectDefualt($("#departureprovince option"),goods.departureProvinceCode);
+			//起始地--市        	
+        	loadDistrict(goods.departureProvinceCode,$("#departurecity"));
+        	updSelectDefualt($("#departurecity option"),goods.departureCityCode);
+        	$("#departure").val(goods.departure);;
+        	//目的地--省
+        	updSelectDefualt($("#destinationprovince option"),goods.destinationProvinceCode);
+        	//目的地--市
+        	loadDistrict(goods.destinationProvinceCode,$("#destinationcity"));
+        	updSelectDefualt($("#destinationcity option"),goods.destinationCityCode);
+        	$("#destination").val(goods.destination);
+        	updSelectDefualt($("#goodsName option"),goods.goodsName);
+        	updSelectDefualt($("#goodsType option"),goods.goodsType);
+        	updSelectDefualt($("#shippingType option"),goods.shippingType);
+        	$("#quantity").val(goods.quantity);
+        	$("#weight").val(goods.weight);
+        	$("#volume").val(goods.volume);
+        	$("#shippingPrice").val(
+        				function(){
+        					if(goods.shippingPrice == -1){
+        						$("#mianyi").attr("checked",true);
+        						$("#shippingPrice").attr("disabled",true);
+        						return '';
+        						}else{
+        							return (goods.shippingPrice/100);
+        						}
+        					}());
+        	var notices = goods.notice;
+        	if(notices != null){
+        		notices = notices.split(',');
+        		for(var i=0;i<notices.length;i++){
+        			$("input[name='notice']").each(function(){
+        				if($(this).val() == notices[i]){
+        					$(this).attr("checked",true);
+        					return false;
+        				}
+        			})
+        		}
+        	}
+        		
+        	$("#departureTime").val(goods.departureTime == null?'选择日期':myFormatterDate(goods.departureTime));
+        	$("#validity").val(
+        			function(){
+						if(goods.validity == -1){	
+							$("#islongterm").attr("checked",true);
+							$("#validity").attr("disabled",true);
+								return '';
+							}else{
+									return goods.validity;
+								}
+							}());
+        	$("#contactName").val(goods.contactName);
+        	$("#contactMobile").val(goods.contactMobile);
+        	$("#phone").val(goods.phone);
+        	$("#input_comment").val(goods.remark);
+        }
+        function myFormatterDate(date){
+        	var dt = new Date(date);
+        	return dt.getFullYear()+"-"+
+        		   ((dt.getMonth()+1) < 10 ? '0'+(dt.getMonth()+1) : (dt.getMonth()+1))+"-"+
+        		   (dt.getDate() < 10 ? '0'+dt.getDate() : dt.getDate());
+        }
+    }) 
+</script>   
+</head>
+
+<body>
+<div class="wrapper">
+<!--头部样式代码-->
+<div class="page">
+  <!--HEADER_START-->
+  <div class="head_bj">
+    <div class="head">
+      <div class="head_top clear">
+        <div class="head_top_left">
+          <ol>
+            <li style="margin-left:0px;"><a href="###">北京</a></li>
+            <li><a href="###">加入收藏</a></li>
+            <li><a href="###">了解物流平台</a></li>
+            <li><a href="###">掌上物流</a></li>
+            <li>客服热线  4000  000  000</li>
+          </ol>
+        </div>
+        <div class="head_top_right">
+          <div class="head_right_user"><a href="###" id="view_username"></a></div>
+        <div class="head_right_txt">您好，欢迎来到中国位置</div>
+        <div class="head_right_out"><a href="javascript:void(0)" onclick="logout()">退出</a></div>
+        </div>
+      </div>
+      <div class="head_xia">
+        <div class="logo"><a href="###"><img src="images/logo.png" /></a></div>
+        <div class="head_nav">
+          <ul>
+            <li style="margin-left:0px;" ><a href="goods_index.html">首页</a></li>
+          	<li><a href="###">我要发货</a></li>
+          	<li><a href="goods_search_warehouse.html">找仓库</a></li>
+          	<li><a href="goods_search_truck.html">找车</a></li>
+         	<li><a href="goods_aidercenter.html">个人中心</a></li>
+           	<li class="active"><a href="goods_list.html">我的货物</a></li>
+          <li style=" margin-right:0px;"><a href="###">意见反馈</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--HEADER_END-->
+  <!--中间部分样式代码-->
+  <div class="center_cont_bj">
+    <div class="center_cont " style="padding-top:10px;">
+      <div class="send_bj">
+        <div class="send_bj_1">
+          <div class="send_list">
+            <div class="send_list_left"><img src="images/pic_1.png" /></div>
+            <div  class="send_list_right send_list0ne">货源发布信息表</div>
+            <div class="send_list0ne" style="text-align:right;padding-right:32px;"><a style="color:#3AAD6E; cursor: pointer;" onclick="javascript:history.go(-1)">&lt;&lt;返回</a></div>
+          </div>
+          <div class="send_box">
+              <table class="send_table">
+                <tr class="send_tr">
+                  <td class="send_title">出发地:</td>
+                  <td class="send_selec" colspan="5"><select id="departureprovince" class="fron_select">
+                      <option value="-1">选择省份</option>
+                    </select>
+                    &nbsp;&nbsp;
+                    <select id="departurecity" class="fron_select">
+                      <option value="-1">选择城市</option>
+                    </select>
+                    &nbsp;&nbsp;
+                    <input type="text" id="departure" class="send_ipt" maxlength="255"/>
+                    &nbsp;&nbsp;* </td>
+                </tr>
+                <tr>
+                  <td class="send_title">到达地:</td>
+                     <td class="send_selec" colspan="5"><select id="destinationprovince" class="fron_select">
+                      <option value="-1">选择省份</option>
+                    </select>
+                    &nbsp;&nbsp;
+                    <select id="destinationcity" class="fron_select">
+                      <option value="-1">选择城市</option>
+                    </select>
+                    &nbsp;&nbsp;
+                    <input type="text" id="destination" class="send_ipt" maxlength="255"/>
+                    &nbsp;&nbsp;* </td>
+                </tr>
+                <tr class="register_tr">
+                <td class="send_title">货物名称:</td>
+                <td class="send_selec"><select id="goodsName" class="fron_select">
+                  </select></td>
+                <td class="send_dian">*</td>
+                 <td class="send_title">货物照片:</td>
+                <td class="send_selec">
+                	<div>
+                 	<form id="f1" action="../api//upload/images" enctype="multipart/form-data" method="post">
+						<input  type="file" id="picture" multiple  name="images" accept="image/*"/>
+					</form>
+					</div>
+                </td>
+              </tr>
+              <tr class="register_tr">
+                <td class="send_title">货物类型:</td>
+                <td class="send_selec"><select id="goodsType" class="fron_select">
+                  </select></td>
+                <td class="send_dian"></td>
+                <td class="send_title">运输类型:</td>
+                <td class="send_selec"><select id="shippingType" class="fron_select">
+                  </select></td>
+                <td class="send_dian"></td>
+              </tr>
+              <tr class="register_tr">
+                <td class="send_title">数量:</td>
+                <td class="send_selec"><div class="send_input">
+                    <input id="quantity" class="sent_ipt_1" type="text" onblur="validateIsFullNum('quantity','数量')" maxlength="9"/>
+                  </div>
+                  <div class="send_ipt_2">件</div></td>
+                <td class="send_dian">* <label id="quantity_promt" class="login_lable"></label></td>
+                <td class="send_title">重量:</td>
+                <td class="send_selec"><div class="send_input">
+                    <input id="weight" class="sent_ipt_1"  type="text" onblur="validateIsNumDecmal('weight','重量')" maxlength="9"/>
+                  </div>
+                  <div class="send_ipt_2">吨</div></td>
+                <td class="send_dian">* <label id="weight_promt" class="login_lable"></label></td>
+              </tr>
+              <tr>
+                <td class="send_title">体积:</td>
+                <td class="send_selec"><div class="send_input">
+                    <input id="volume" class="sent_ipt_1" type="text" onblur="validateIsFullNum('volume','体积')" maxlength="9"/>
+                  </div>
+                  <div class="send_ipt_2">立方米</div></td>
+                <td class="send_dian">* <label id="volume_promt" class="login_lable"></label></td>
+              </tr>
+               <tr>
+                  <td class="send_title">运价:</td>
+                  <td class="send_selec"><div class="send_input">
+                      <input id="shippingPrice" class="sent_ipt_1"  type="text" onblur="validateShippingPrice()" maxlength="9"/>
+                    </div>
+                    <div class="send_ipt_2">元/吨</div></td>
+                  <td ><div class="send_check">
+                      <input id="mianyi" type="checkbox" />
+                      &nbsp;&nbsp;面议</div></td>
+                      <td class="send_dian">* <label id="shippingPrice_promt" class="login_lable"></label></td>
+                </tr>
+              <tr>
+                <td class="send_title">注意事项:</td>
+                <td colspan="5"><div class="send_check">
+                    <input name="notice" value="1" type="checkbox" />
+                    &nbsp;&nbsp;向上</div>
+                  <div class="send_check">
+                    <input name="notice" value="2" type="checkbox" />
+                    &nbsp;&nbsp;防潮</div>
+                  <div class="send_check">
+                    <input name="notice" value="3" type="checkbox" />
+                    &nbsp;&nbsp;易碎</div>
+                  <div class="send_check">
+                    <input name="notice" value="4" type="checkbox" />
+                    &nbsp;&nbsp;危险品</div></td>
+              </tr>
+              <tr style="height:20px;">
+                <td class="send_title">发货时间</td>
+                <td><div class="send_check">
+                    <input id="departureTime" onclick="$(this).removeClass('promt')" type="text" class="send_ipt DatePicker" onfocus="HS_setDate(this)" value="选择日期" readonly/></div></td>
+                     <td class="send_dian">* <label id="contactMobile_promt" class="login_lable"></label></td>
+              </tr>
+              <tr>
+                <td class="send_title">有效期:</td>
+                <td><input id="validity" type="text" class="send_ipt DatePicker" onfocus="HS_setDate(this)" value="选择日期" readonly onclick="$(this).removeClass('promt')"/></td>
+                <td><div class="send_check">
+                    <input id="islongterm" type="checkbox" />
+                    &nbsp;&nbsp;长期货源</div></td>
+                    <td class="send_dian">*</td>
+              </tr>
+              <!-- <tr style="height:20px;">
+                <td class="send_title"></td>
+                <td><div class="send_check">
+                    <input id="islongterm" type="checkbox" />
+                    &nbsp;&nbsp;长期货源</div></td>
+              </tr> -->
+              <tr class="register_tr">
+                <td class="send_title">联系姓名:</td>
+                <td><input id="contactName" type="text" class="send_ipt" onblur="validaterealName('contactName','联系姓名',true)" maxlength="255"/></td>
+                <td class="send_dian">*<label id="contactName_promt" class="login_lable"></td>
+                <td class="send_title">联系手机:</td>
+                <td><input id="contactMobile" type="text" class="send_ipt" onblur="validateMobile('contactMobile',true)"/></td>
+                <td class="send_dian">*<label id="contactMobile_promt" class="login_lable"></td>
+              </tr>
+              <tr>
+                <td class="send_title">固定电话:</td>
+                <td><input id="phone" type="text" class="send_ipt" onblur="validateTel()"/></td>
+                <td><label id="phone_promt" class="login_lable"></label></td>
+              </tr>
+              <tr style="height:20px;">
+                <td colspan="6"><div style="border-top:1px solid #e8e8e8;"></div></td>
+              </tr>
+              <tr>
+                <td class="send_title">位置</td>
+                <td><input id="signarea_positionDescription" type="text" class="send_ipt" readonly /></td>
+                <td id="mapSearch-wrap"><input type="button" class="send_submit" style="margin: 0; font-size: 12px; height:30px; line-height:30px; background:#61B285; width: 40px; margin-left: 5px;" value="地图" id="mapSearch"></td>
+                <td class="send_dian">*</td>
+                <td id="confirmMap-wrap" style="display:none;"><input type="button" class="send_submit" style="margin: 0; font-size: 12px; height:30px; line-height:30px; background:#0A9B4A; width: 40px; margin-left: 5px;" value="确定" id="confirmMap"></td>
+              </tr>
+              <tr id="map-wrap" style="display:none;">
+                <td class="send_title">地图</td>
+                <td  colspan="4">
+                  <div id="allmap" style="height:400px; width:100%"></div>
+                </td>
+              </tr>
+              <tr>
+                <td class="send_title" style="vertical-align:top;">备注说明:</td>
+                <td colspan="5"><textarea class="send_textare"  rows="4" cols="25" name="comment" id="input_comment" placeholder="字数在十个左右"></textarea></td>
+              </tr>
+              </table>
+          </div>
+          <div class="send_submit" id="send_submit"> 确认修改 </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+  <!--尾部样式代码-->
+  <!--FOOTER_START-->
+  <div class="copyright">
+    <div class="bottom_bj">
+      <div class="bottom">
+        <ul class="clear">
+          <li style="border-right:1px solid #fff;"><a href="###">中国位置物流平台简介</a></li>
+          <li><a href="###">联系我们</a></li>
+        </ul>
+        <div class="bottom_txt">版权所有©2014北斗导航位置服务(北京)有限公司-京ICP备05085635号Copyright © 2014 ChinaLbs International BV.All rights reserved.</div>
+      </div>
+    </div>
+  </div>
+  <!--FOOTER_END-->
+</div>
+</body>
+</html>

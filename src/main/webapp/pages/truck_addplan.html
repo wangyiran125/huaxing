@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>发布车源</title>
+<link href="css/send.css" type="text/css" rel="stylesheet" />
+<link href="css/headfoot.css" type="text/css" rel="stylesheet" />
+<link href="css/main.css" type="text/css" rel="stylesheet" />
+<link href="css/theme.css" type="text/css" rel="stylesheet" />
+<link href="css/regist.css" type="text/css" rel="stylesheet" />
+<script type="text/javascript" src="js/jquery.js" ></script>
+<!--[if lt IE 8 ]><script src="js/json2.min.js"></script><![endif]-->
+<script type="text/javascript" src="js/logistics.js"></script>
+<script type="text/javascript" src="js/regvalidate.js"></script>
+<script type="text/javascript" src="js/dictHandler.js"></script>
+<script type="text/javascript" src="js/date.js"></script>
+<style type="text/css">
+	.promt{
+		border:1px solid red;
+	}
+</style>
+<script>
+
+  function saveplan() {
+    var jsonData = {};
+	var shippingPrice = false;
+	var mianyi = false;
+	var isLocalFreeTruck = false;
+	if($("#mianyi").is(":checked")){
+		shippingPrice = true;
+		mianyi = true;
+	}else{
+		//shippingPrice=validateIsNull('shippingPrice','运价');
+		shippingPrice=validateShippingPrice();
+	}
+    if($('#departureprovince').val() == -1){
+    	$('#departureprovince').addClass('promt');
+    	flash('#departureprovince',3,8,50);
+    	return;
+    }
+    
+    if($("input[name='isLocalFreeTruck']").is(":checked")){
+    	isLocalFreeTruck = true;
+    }else{
+    	if($('#destinationprovince').val() == -1){
+        	$('#destinationprovince').addClass('promt');
+        	flash('#destinationprovince',3,8,50);
+        	return;
+        }	
+    }
+    
+    if($("#departureTime").val() == '选择日期'){
+      $("#departureTime_promt").html('请选择日期');
+      return;
+    }
+    if (shippingPrice) {
+      var data = $('#truck-plan-form').serialize(),
+      arr = data.split('&');
+	  if(mianyi){
+		  jsonData["shippingPrice"] = 0;
+	  }
+      jsonData['isBackTruck'] = 2;//默认不是回程车
+      jsonData['isLongTerm'] = 2;//默认不是长期车
+      jsonData['isLocalFreeTruck'] = 2;//默认不是本地空闲车
+	  
+      for (var i = 0; i < arr.length; i++) {
+        var arr2 = arr[i].split('=');
+        if(arr2[0] == 'isBackTruck' || arr2[0] == 'isLongTerm' || arr2[0] == 'isLocalFreeTruck' ){//选中了，才会有这个参数
+         jsonData[arr2[0]] = 1;//改不是为是
+         continue;
+        }
+        var value = jsonData[arr2[0]];
+        value = value ? value + "," +arr2[1] : arr2[1];
+        jsonData[arr2[0]] = value;
+      };
+      jsonData["departureTime"] = $("#departureTime").val() == '选择日期'? null:$("#departureTime").val();
+      jsonData["remark"] = $('#input_comment').val();
+      
+      //如果是本地空闲车
+      if(isLocalFreeTruck){
+    	  jsonData["destinationProvinceCode"] = $("#departureprovince").val();
+    	  jsonData["destinationCityCode"] = $("#departurecity").val();
+      }
+      
+      $.ajax({
+        url: '../api/truckplans',
+        contentType: 'application/json',
+        data: JSON.stringify(jsonData),
+        type: 'post',
+        success: function (json) {
+            if (json.code == 0) {
+                logisticsAlert("车源发布成功！");
+                window.location.href='truck_myplan.html';
+            } else {
+                logisticsError(json.description);
+            }
+        },
+        error: function(jqXHR, textStatus, errorThrown){
+            ajaxError(jqXHR, textStatus, errorThrown);
+        }
+    });
+    } else{
+      return;
+    };
+
+    
+  }
+
+  function loadTruckInfo(){
+    $.ajax({
+        url: '../api/trucks?from='+0+'&max='+10000+'&t='+new Date().getTime(),
+        contentType: 'application/json',
+        type: 'get',
+        success: function (json) {
+          if(json.code == 0){
+            var list = json.payload.list;
+            if(list.length == 0){
+              logisticsAlert('当前没有用于发布车源的有效车辆！');
+              return;
+            }
+
+            var str = '';
+            for (var i = 0; i < list.length; i++) {
+              str += '<option value="'+list[i].id+'">'+decodeURI(list[i].licensePlateNumber)+'</option>';
+            };
+            $('#truckId').html(str);
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown){
+            ajaxError(jqXHR, textStatus, errorThrown);
+        }
+    });
+  }
+
+  $(function(){
+    verifyAndDisplayUserInfo();
+    loadTruckInfo();
+	$("#mianyi").click(function(){
+		if($(this).is(":checked")){
+			$("#shippingPrice").attr("disabled",true);
+			$("#shippingPrice").val('');
+      $("#shippingPrice_promt").html("");
+		}else{
+			$("#shippingPrice").attr("disabled",false);
+		}
+	})
+	//是否选中本地空闲车
+	$("input[name='isLocalFreeTruck']").click(function(){
+		if($("input[name='isLocalFreeTruck']").is(":checked")){
+			$("#islocal").html("所在地:");
+			$("#nolocal").hide();
+		}else{
+			$("#islocal").html("出发地:");
+			$("#nolocal").show();
+		}
+	})
+    loadDistrict(0,$("#departureprovince"));
+    loadDistrict(0,$("#destinationprovince"));
+    $("#departureprovince").change(function(){
+      $(this).removeClass('promt');
+      $("#departurecity").empty();
+      loadDistrict($(this).val(),$("#departurecity"));
+    });
+    $("#destinationprovince").change(function(){
+      $(this).removeClass('promt');
+      $("#destinationcity").empty();
+      loadDistrict($(this).val(),$("#destinationcity"));
+    });
+
+    var commentStr = '';
+    
+    $('input[name=phrase]').click(function(){
+      commentStr = '';
+      $('input[name=phrase]:checked').each(function(){
+        commentStr+= (commentStr.length ? ' | ' : '') +$(this).next("label").html();
+      });
+      $("#input_comment").val(commentStr);
+    	
+    });
+
+    $("#departureTime").blur(function(){
+      $("#departureTime_promt").html('');
+    });
+  });
+</script>
+</head>
+
+<body>
+<div class="wrapper">
+  <div class="page">
+<!--头部样式代码-->
+<!--HEADER_START-->
+<div class="head_bj">
+  <div class="head">
+    <div class="head_top clear">
+      <div class="head_top_left">
+        <ol>
+          <li style="margin-left:0px;"><a href="###">北京</a></li>
+          <li><a href="###">加入收藏</a></li>
+          <li><a href="###">了解物流平台</a></li>
+          <li><a href="###">掌上物流</a></li>
+          <li>客服热线  4000  000  000</li>
+        </ol>
+      </div>
+      <div class="head_top_right">
+        <div class="head_right_user"><a id="view_username" href="javascript:;"></a></div>
+        <div class="head_right_txt">您好，欢迎来到中国位置</div>
+        <div class="head_right_out"><a href="javascript:void(0)" onclick="logout()">退出</a></div>
+      </div>
+    </div>
+    <div class="head_xia">
+      <div class="logo"><a href="###"><img src="images/logo.png" /></a></div>
+      <div class="head_nav">
+        <ul>
+          <li style="margin-left:0px;" ><a href="./truck_index.html">首页</a></li>
+          <li ><a href="./truck_search_goods.html">我要找货</a></li>
+          <li class="active"><a href="./truck_addplan.html">发布车源</a></li>
+          <li ><a href="./truck_my_goods.html">我的抢单</a></li>
+          <li><a href="./truck_myplan.html">我的车源</a></li>
+          <li><a href="###">车辆监控</a></li>
+          <li><a href="./truck_aidercenter.html">个人中心</a></li>
+          <li style=" margin-right:0px;"><a href="./feedback.html">意见反馈</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+<!--HEADER_END-->
+<!--中间部分样式代码-->
+<div class="center_cont_bj">
+  <div class="center_cont " style="padding-top:10px;">
+    <div class="send_bj">
+      <div class="send_bj_1">
+        <div class="send_list">
+          <div class="send_list_left"><img src="images/pic_1.png" /></div>
+          <div  class="send_list_right send_list0ne">车源发布信息表</div>
+        </div>
+        <div class="send_box">
+          <form method="post" id="truck-plan-form">
+            <table class="send_table">
+              <tr class="send_tr">
+                <td class="send_title">车牌号:</td>
+                <td class="send_selec"><select name="truckId" id="truckId" class="fron_select">
+                    <!-- <option></option> -->
+                  </select></td>
+              </tr>
+              <tr class="send_tr">
+                <td class="send_title">车源类型:</td>
+                <td colspan="5">
+                	<div class="send_check"><input name="isBackTruck" type="checkbox" />&nbsp;&nbsp;回程车</div>
+                    <div class="send_check"><input name="isLongTerm" type="checkbox" />&nbsp;&nbsp;长期车</div>
+                    <div class="send_check"><input name="isLocalFreeTruck" type="checkbox" />&nbsp;&nbsp;本地空闲车</div>
+                </td>
+              </tr>
+              <tr class="send_tr">
+                <td id="islocal" class="send_title">出发地:</td>
+                <td class="send_selec" colspan="5"><select name="departureProvinceCode" id="departureprovince" class="fron_select">
+                    <option value="-1">选择省份</option>
+                  </select>
+                  &nbsp;&nbsp;
+                  <select name="departureCityCode" id="departurecity" class="fron_select">
+                    <option value="-1">选择城市</option>
+                  </select>
+                </td>
+              </tr>
+              <tr id="nolocal" class="send_tr">
+                <td class="send_title">到达地:</td>
+                 <td class="send_selec" colspan="5"><select name="destinationProvinceCode" id="destinationprovince" class="fron_select">
+                  <option value="-1">选择省份</option>
+                </select>
+                &nbsp;&nbsp;
+                <select name="destinationCityCode" id="destinationcity" class="fron_select">
+                  <option value="-1">选择城市</option>
+                </select></td>
+              </tr>
+              <tr class="send_tr">
+                <td class="send_title">发车时间:</td>
+                <td class="send_selec">
+                <div class="send_check">
+                    <!-- <input id="departureTime_year" class="sent_ipt_3" type="text" />&nbsp;&nbsp;年&nbsp;&nbsp;<input id="departureTime_month" class="sent_ipt_3" type="text" />&nbsp;&nbsp;月&nbsp;&nbsp;<input id="departureTime_date" class="sent_ipt_3" type="text" />&nbsp;&nbsp;日 -->
+                    <input id="departureTime" type="text" class="send_ipt DatePicker" onfocus="HS_setDate(this)" value="选择日期" readonly="readonly"/>
+                  </div></td>
+                  <td class="send_dian">*&nbsp;<label id="departureTime_promt" class="login_lable"></label></td>
+              </tr>
+               <tr class="send_tr">
+                <td class="send_title">运价:</td>
+                <td class="send_selec">
+                <div class="send_input">
+                    <input name="shippingPrice" class="sent_ipt_1" type="text" id="shippingPrice" onblur="validateShippingPrice()" maxlength="9"/>&nbsp;&nbsp;元/吨&nbsp;&nbsp;
+                    <input id="mianyi" type="checkbox"/>&nbsp;&nbsp;面议
+                  </div></td>
+                  <td style="color:#6e783c;">*&nbsp;<label id="shippingPrice_promt" class="login_lable"></label></td>
+              </tr>
+              <tr class="send_tr">
+                <td class="send_title">常用语:</td>
+                <td colspan="5"><div class="send_check">
+                    <input type="checkbox" value="1" id="qiuhuoyuan" name="phrase"/>
+                    &nbsp;<label for="qiuhuoyuan">求货源</label></div>
+                  <div class="send_check">
+                    <input type="checkbox" value="2" id="sulianxi" name="phrase"/>
+                    &nbsp;<label for="sulianxi">有货速联系</label></div>
+                  <div class="send_check">
+                    <input type="checkbox" value="3" id="haoshangliang" name="phrase"/>
+                    &nbsp;<label for="haoshangliang">运价好商量</label></div>
+                  <div class="send_check">
+                    <input type="checkbox" value="4" id="jizou" name="phrase"/>
+                    &nbsp;<label for="jizou">价低急走</label></div>
+                    <div class="send_check">
+                    <input type="checkbox" value="5" id="huicheng" name="phrase"/>
+                    &nbsp;<label for="huicheng">回程车</label></div>
+                    <div class="send_check">
+                    <input type="checkbox" value="6" id="zhuangjiuzou" name="phrase"/>
+                    &nbsp;<label for="zhuangjiuzou">装车就走</label></div>
+                    <div class="send_check">
+                    <input type="checkbox" value="7" id="lingdanbao" name="phrase"/>
+                    &nbsp;<label for="lingdanbao">求零担</label></div>
+                    <div class="send_check">
+                    <input type="checkbox" value="8" id="wanshang" name="phrase"/>
+                    &nbsp;<label for="wanshang">晚上也可装车</label></div>
+                 </td>
+              </tr>
+               <tr style="height:20px;" class="send_tr">
+                 <td colspan="6"></td>
+              </tr>
+              <tr style="height:20px;" class="send_tr">
+                 <td colspan="6"><div style="border-top:1px solid #e8e8e8;"></div></td>
+              </tr>
+               <tr style="height:20px;" class="send_tr">
+                 <td colspan="6"></td>
+              </tr>
+              <tr class="send_tr">
+                <td class="send_title" style="vertical-align:top;">备注说明:</td>
+                <td colspan="6"><textarea name="remark" class="send_textare"  rows="4" cols="25" name="comment" id="input_comment" ></textarea></td>
+              </tr>
+            </table>
+          </form>
+        </div>
+        <div class="send_submit" onclick="saveplan()"> 确认发布 </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<!--尾部样式代码-->
+<!--FOOTER_START-->
+<div id="bottom-bj-wrap"></div>
+<!--FOOTER_END-->
+</div>
+</body>
+</html>

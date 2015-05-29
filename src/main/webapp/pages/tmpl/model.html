@@ -1,0 +1,21 @@
+<script language="JavaScript" src="js/jquery.easyModal.js"></script>
+<div id="modal_error" style="display: none; padding: 20px; position: fixed; z-index: 16; left: 50%; top: 200px; margin-left: -300px; margin-top: 0px;">
+</div>
+<div id="modal_info" style="display: none; padding: 20px; position: fixed; z-index: 16; left: 50%; top: 200px; margin-left: -300px; margin-top: 0px;">
+</div>
+<script language="JavaScript">
+    $('#modal_error').easyModal({
+        top: 200,
+        overlayOpacity: 0.6,
+        overlayColor: "#333"
+    });
+    $('#modal_info').easyModal({
+        top: 200,
+        overlayOpacity: 0.0,
+        overlayColor: "#fff",
+        onClose: function(myModal){
+            removeLogisticsAlerting();
+        }
+    });
+    $(resumeLogisticsAlert());
+</script>

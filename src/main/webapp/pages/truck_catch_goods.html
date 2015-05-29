@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>我要抢单</title>
+<link href="css/ware.css" type="text/css" rel="stylesheet" />
+<link href="css/headfoot.css" type="text/css" rel="stylesheet" />
+<link href="css/main.css" type="text/css" rel="stylesheet" />
+<link href="css/theme.css" type="text/css" rel="stylesheet" />
+<style type="text/css">
+  .unclickable {cursor: default; background-color: #999; border: 0;}
+  .back{width:100%;text-align:right;}
+</style>
+<script type="text/javascript" src="js/jquery.js"></script>
+<!--[if lt IE 8 ]><script src="js/json2.min.js"></script><![endif]-->
+<script type="text/javascript" src="js/zezao.js" ></script>
+<script type="text/javascript" src="js/logistics.js"></script>
+<script type="text/javascript" src="js/dictHandler.js"></script>
+<script>
+var conf = {};
+conf.truckIds = [];
+var goods = JSON.parse(sessionStorage.getItem($.getUrlParam('gid')));
+function loadGoods(){
+	if(goods != null){
+		var picture = goods.picture;
+		if(picture != null){
+			picture = picture.split(',');
+			for(var i=0;i<picture.length;i++){
+				$('#list-picture-box').append("<li> <img width='300px' src='"+picture[i]+"' /></li>");
+			}
+			picture = picture[0];
+		}else{
+			picture = 'images/invalid_pic2.png';
+		}
+		$(".detailde_left").html("<img width='200px' src='"+picture+"'/>");
+		$("#departure").html(parseToDistrictName(goods.departureProvinceCode)+' '+parseToDistrictName(goods.departureCityCode));
+    	$("#destination").html(parseToDistrictName(goods.destinationProvinceCode)+' '+parseToDistrictName(goods.destinationCityCode));
+    	$("#goodsName").html(parseToGoodsName(goods.goodsName));
+    	$("#goodsType").html(parseToGoodsType(goods.goodsType));
+    	$("#shippingType").html(parseToShippingType(goods.shippingType));
+    	$("#shippingPrice").html((goods.shippingPrice == (0 || -1))?'面议':((goods.shippingPrice/100)+'元/吨'));
+    	$("#weight").html(goods.weight+'吨');
+    	$("#volume").html(goods.volume+'立方米');
+    	$("#quantity").html(goods.quantity+'件');
+    	$("#contactName").html(goods.contactName);
+    	$("#validity").html(goods.validity == -1?'长期货源':goods.validity);
+    	$("#remark").html(goods.remark == '' ? "暂无详细说明" : goods.remark);
+	}else{
+		logisticsError();
+		history.go(-1);
+	}
+	
+  /* var idArr = ['departure','destination','goodsName','goodsType','weight','shippingType','volume','goodsOwnerId','contactName','validity'];
+  $.ajax({
+    url: '../api/goods/'+id,
+    success: function(json){
+      if(json.code == 0){
+        var item = json.payload;
+
+        for (var i = 0; i < idArr.length; i++) {
+          $('#'+idArr[i]).html(item[idArr[i]]);
+        };
+
+      }else{
+          logisticsError(json.desciption);
+      }
+    },
+      error: function(jqXHR, textStatus, errorThrown){
+          ajaxError(jqXHR, textStatus, errorThrown);
+      }
+  }); */
+}
+
+function loadTruckList(from, max){
+  $.ajax({
+    url: '../api/trucks/intentabletrucks?from='+from+'&max='+max+'&t='+new Date().getTime(),
+    success: function(json){
+      if(json.code == 0){
+        $('#detailed_center-box').html('');
+        conf.truckIds = [];
+        // console.log(json);
+        var list = json.payload.list;
+        if(list.length == 0)return;
+        for (var i = 0; i < list.length; i++) {//TODO 删除车辆按钮的样式需要在main.css里面修改
+          $('\
+            <li>\
+              <div class="detai_list_1">'+decodeURI(list[i].licensePlateNumber)+'</div>\
+              <div class="detai_list_2"> 载重'+list[i].truckLoad+'吨</div>\
+              <div class="detai_list_3"> 司机：'+decodeURI(list[i].patcher)+' </div>\
+              <div class="detai_list_4">\
+                <input type="checkbox" data-id="'+list[i].id+'" />\
+                &nbsp;&nbsp;选车</div>\
+            </li>\
+            ').appendTo('#detailed_center-box');
+          // 
+        };
+        // $('#truck-list-box')
+      }else{
+        logisticsAlert('加载失败');
+      }
+    },
+      error: function(jqXHR, textStatus, errorThrown){
+          ajaxError(jqXHR, textStatus, errorThrown);
+      }
+  });
+}
+
+$(function(){
+  // $('#bottom-bj-wrap').load('./tmpl/bottom.html');
+  verifyAndDisplayUserInfo();
+  conf.id = location.search.replace('?id=','');//地址栏里的货物的id值，是字符串
+  loadGoods();
+
+  $('#mywar_delete').click(function(){//取消按钮
+    $('#box_mark').hide();
+    $('#box_logoIn').hide();
+  });
+
+  $(".mycar_active").click(function(){
+    loadTruckList(0,100);
+  });
+
+  $(".mywar_submit").click(function(){
+    var len = $('#detailed_center-box').find('input:checked').length;
+    if(len == 0){
+      logisticsAlert('您没有选择车辆，不能进行抢单~');
+      return;
+    }
+
+    $('#box_mark').hide();
+    $('#box_logoIn').hide();
+    
+    $('#detailed_center-box').find('input:checked').each(function(){
+      conf.truckIds.push($(this).attr('data-id'));
+    });
+
+    var jsonData = {
+      "goodsId": goods.id,
+      "truckIds": conf.truckIds,
+      "initiator":1
+    };
+
+    $.ajax({
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(jsonData),
+        url: '../api/intents',
+        success: function(json){
+          // console.log(json);
+          if(json.code == 0){
+            var mobile = json.payload.contactMobile;
+            $('#deta_iphone').html(mobile).addClass('number_color');
+          }else{
+              logisticsError(json.description);
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown){
+            ajaxError(jqXHR, textStatus, errorThrown);
+        }
+    });
+
+  });
+});
+</script>
+</head>
+
+<body>
+<div class="wrapper"> 
+  <!--头部样式代码-->
+  <div class="page">
+    <!--HEADER_START-->
+    <div class="head_bj">
+      <div class="head">
+        <div class="head_top clear">
+          <div class="head_top_left">
+            <ol>
+              <li style="margin-left:0px;"><a href="###">北京</a></li>
+              <li><a href="###">加入收藏</a></li>
+              <li><a href="###">了解物流平台</a></li>
+              <li><a href="###">掌上物流</a></li>
+              <li>客服热线  4000  000  000</li>
+            </ol>
+          </div>
+          <div class="head_top_right">
+            <div class="head_right_user"><a id="view_username" href="###"></a></div>
+            <div class="head_right_txt">您好，欢迎来到中国位置</div>
+            <div class="head_right_out"><a href="javascript:void(0)" onclick="logout()">退出</a></div>
+          </div>
+        </div>
+        <div class="head_xia">
+          <div class="logo"><a href="###"><img src="images/logo.png" /></a></div>
+          <div class="head_nav">
+           <ul>
+            <li style="margin-left:0px;" ><a href="./truck_index.html">首页</a></li>
+            <li class="active"><a href="###">我要找货</a></li>
+            <li ><a href="sendcar.html">发布车源</a></li>
+            <li><a href="./truck_my_goods.html">我的抢单</a></li>
+            <li><a href="./truck_myplan.html">我的车源</a></li>
+            <li><a href="###">车辆监控</a></li>
+            <li><a href="aidercenter.html">个人中心</a></li>
+            <li style=" margin-right:0px;"><a href="aider.html">意见反馈</a></li>
+          </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--HEADER_END-->
+    <!--中间部分样式代码-->
+    <div class="center_cont_bj">
+      <div class="center_cont" style="padding-top:10px;">
+        <div class="send_bj ">
+          <div class="send_bj_1"> 
+            <!--用车详情上半部分-->
+            <div class="detailde_bj">
+            <div class="send_list_right car_txt back">&nbsp;<a style="cursor: pointer;" onclick="javascript:history.go(-1)">&lt;&lt;返回 </a></div>
+              <h3> <img src="images/pic_3.png" /> &nbsp;<span id="departure"></span> &nbsp; <span>→</span> &nbsp; <img src="images/pic_3.png" /> &nbsp;<span id="destination"></span> </h3>
+              <div class="detailde_top">
+                <div class="detailde_left"> </div>
+                <div class="detailde_right">
+                  <p>
+                    <span style="display:inline-block; width:200px;">运价：<strong id="shippingPrice"></strong></span>
+                    <span style="display:inline-block;">货物名称：<span id="goodsName"></span></span>
+                  </p>
+                  <p>
+                    <span style="display:inline-block; width:200px;">货物类型：<span id="goodsType"></span></span>
+                    <span style="display:inline-block;">重量：<span id="weight"></span> </span>
+                  </p>
+                  <p>
+                    <span style="display:inline-block; width:200px;">运输类型：<span id="shippingType"></span></span>
+                    <span style="display:inline-block;">体积：<span id="volume"></span></span>
+                  </p>
+                  <p>
+                    <span style="display:inline-block; width:200px;">联系人：<span id="contactName"></span></span>
+                    <span style="display:inline-block;"><span>信息有效期：<span id="validity"></span></span>
+                  </p>
+                  
+                  <div class="deta_anniu">
+                    <div class="deta_submit mycar_active">我要抢单</div>
+                    <div class="deta_iphone" id="deta_iphone" style="cursor: auto">联系方式：点击我要抢单显示</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!--用车详情上半部分-->
+            
+            <div class="detailde_xia">
+              <h4>图文详情</h4>
+              <ul id="list-picture-box">
+              </ul>
+              <p>说明：<span id="remark">sdfsfjslkjflkslkdfjskldj</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!--尾部样式代码-->
+<!--FOOTER_START-->
+<div id="bottom-bj-wrap"></div>
+<!--FOOTER_END-->
+</div>
+<div class="box_mark" id="box_mark" ></div>
+<div class="box_logoIn detailed_LogoIn" id="box_logoIn">
+  <div id="close" class="close"><img src="images/pic_14.png" /></div>
+  <div class="mark_title">选择车辆</div>
+  <div class="detailed_center">
+    <ul id="detailed_center-box">
+      <!-- <li>
+        <div class="detai_list_1">京AT9234</div>
+        <div class="detai_list_2"> 载重10吨</div>
+        <div class="detai_list_3"> 司机：李强 </div>
+        <div class="detai_list_4">
+          <input type="checkbox" />
+          &nbsp;&nbsp;选车</div>
+      </li> -->
+      
+    </ul>
+  </div>
+  <div class="mywar_delete" id="mywar_delete" style="margin-left:80px;"><a href="javascript:;">取消</a></div>
+  <div class="mywar_submit" id="mywar_submit"><a href="javascript:;">确认</a></div>
+</div>
+</body>
+</html>

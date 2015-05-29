@@ -1,0 +1,79 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>用户统计</title>
+
+<link rel="stylesheet" type="text/css" href="css/common.css"/>
+<style type="text/css">
+	body {
+		background:#ffffff;
+	}
+</style>
+<script type="text/javascript" src="js/jquery.js"></script>
+<!--[if lt IE 8 ]><script src="js/json2.min.js"></script><![endif]-->
+<script type="text/javascript" src="heightcharts/highcharts.js"></script>
+<script type="text/javascript" src="heightcharts/modules/exporting.js"></script>
+<script type="text/javascript" src="js/logistics.js"></script>
+<script type="text/javascript" src="js/highchartsutils.js"></script>
+<script type="text/javascript">
+	$(function(){
+		checkUserRole();
+		getChart("container", "系统用户数量统计分析", "../api/chart/user", "用户数");
+		$(".pageButton button").click(function(){
+			var type = $(this).attr("name");
+			var randerTo = "container";
+			var title = "系统用户数量统计分析";
+			var url = "../api/chart/user";
+			var yTitle = "用户数";
+			switch (type) {
+				case "date":
+					title = "系统昨日新增用户";
+					url = "../api/chart/user/increase?type=" + type;
+					break;
+				case "day":
+					title = "系统本周新增用户";
+					url = "../api/chart/user/increase?type=" + type;
+					break;
+				case "month":
+					title = "系统当月新增用户";
+					url = "../api/chart/user/increase?type=" + type;
+					break;
+				case "year":
+					title = "系统当年新增用户";
+					url = "../api/chart/user/increase?type=" + type;
+					break;
+				default:
+					break;
+			}
+			getChart(randerTo, title, url, yTitle);
+		});
+	});
+</script>
+</head>
+
+<body>
+<div id="contentWrap">
+	<div class="pageTitle"><span><a href="chart_order.html">统计分析</a> &gt; <a href="chart_user.html">用户统计</a></span></div>
+	<div class="pageColumn">
+		<div class="pageButton">
+			<button class="btn-primary" name="all">用户总数</button>
+		    <button class="btn" name="date">昨日新增</button>
+		    <button class="btn" name="day">本周新增</button>
+		    <button class="btn" name="month">当月新增</button>
+		    <button class="btn" name="year">当年新增</button>
+		</div>
+		<div id="container" style="width: 100%; height: 400px;"></div>
+		<!-- <div style="margin: 10px, 10px, 10px, 0; text-align: center; width: 100%;">
+			 点击按钮切换图表：
+		    <button class="change btn-primary" name="line">折线图</button>
+		    <button class="change btn" name="spline">曲线图</button>
+		    <button class="change btn" name="pie">饼状图</button>
+		    <button class="change btn" name="column">柱状图</button>
+		    <button class="change btn" name="bar">条形图</button>
+		    <button class="change btn" name="scatter">散点图</button>
+		</div> -->
+	</div>
+</div>
+</body>
+</html>

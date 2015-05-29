@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>我的仓库列表</title>
+<link href="css/ware.css" type="text/css" rel="stylesheet" />
+<link href="css/headfoot.css" type="text/css" rel="stylesheet" />
+<link href="css/main.css" type="text/css" rel="stylesheet" />
+<link href="css/theme.css" type="text/css" rel="stylesheet" />
+<script type="text/javascript" src="js/jquery.js"></script>
+<!--[if lt IE 8 ]><script src="js/json2.min.js"></script><![endif]-->
+<script type="text/javascript" src="js/index.js" ></script>
+<script type="text/javascript" src="js/logistics.js"></script>
+<script type="text/javascript" src="js/dictHandler.js"></script>
+<script type="text/javascript">
+	var conf={};
+	//加载仓库列表
+	function loadWarehouse(){
+		$('#warehouse-list-box').empty();
+		$.ajax({
+			type:'get',
+			url:'../api/warehouses/currentUser',
+			success:function(json){
+				if(json.code == 0){
+					list = json.payload;
+					if(!list.length > 0){
+						$('#warehouse-list-box').html('<center style="padding:30px;color:#969696;">您还没有发布仓库，赶紧发布一个吧！</center>');
+					}else{
+						for(var i=0;i<list.length;i++){
+							var picture = list[i].picture;
+							if(picture != null){
+								picture = picture.split(',')[0];
+							}else{
+								picture = 'images/invalid_pic1.png';
+							}
+							var wid = newGuid();
+							sessionStorage.setItem(wid,JSON.stringify(list[i]));
+							$('\
+									<li>\
+						              <div class="content_list_left"><a href="warehouse_update.html?wid='+wid+'"><img width="125px" src="'+picture+'" /></a></div>\
+						              <div class="content_list_right">\
+						                <h2> <a href="warehouse_update.html?wid='+wid+'"><img src="images/pic_3.png" />&nbsp;'+list[i].address+'&nbsp;</a> </h2>\
+						                <div class="cont_right_list chang_margin">\
+						                  <ol>\
+						                    <li style="padding-left:0px;">'+parseToWarehouseType(list[i].type)+' </li>\
+						                    <li> '+list[i].area+'平方米</li>\
+						                    <li>'+list[i].volume+'立方米 </li>\
+						                    <li>'+(list[i].isCoolStore == 1 ? "有冷库" : "无冷库")+' </li>\
+						                    <li class="bill_money">'+(list[i].rent/100)+'元/立方米</li>\
+						                  </ol>\
+						                </div>\
+						                <p><span>发布时间：'+formatterDate(list[i].createTime)+'</span></p>\
+						              </div>\
+						              <div class="mycar_xiangqing"><a href="warehouse_update.html?wid='+wid+'">修改信息</a></div>\
+						              <div onclick="conf.editWarehouseId='+list[i].id+';" class="mycar_lost mycar_active" style="margin-top:10px;" data-role="deleteWarehouse-btn"><a href="javascript:void(0)">删除信息</a></div>\
+						            </li>\
+									').appendTo('#warehouse-list-box');
+						}
+					}
+				}else{
+					logisticsError(json.description);
+				}
+			},
+            error: function(jqXHR, textStatus, errorThrown){
+                ajaxError(jqXHR, textStatus, errorThrown);
+            }
+		})	
+	}
+	
+	//删除仓库
+	function deleteWarehouse(){
+		//if(confirm('确定要删除吗？')){
+			$.ajax({
+				type:'delete',
+				url:'../api/warehouses/'+conf.editWarehouseId,
+				success:function(json){
+					if(json.code == 0){
+             modalNameSpace.deleteWarehouseModal.cancelHandler();
+						loadWarehouse();
+					}else{
+						logisticsError(json.description);
+					}
+				},
+				error:function(){
+					//服务器异常
+				}
+			})
+		//}else{
+		//	return;
+		//}
+	}
+    $(function(){
+        verifyAndDisplayUserInfo();
+        loadWarehouse();
+
+        modalNameSpace.deleteWarehouseModal = new TheModal('warehouse-list-box', 'deleteWarehouse-btn', '确定要删除吗？');
+        modalNameSpace.deleteWarehouseModal.realConfirm = deleteWarehouse;
+    })    
+</script>
+</head>
+
+<body>
+<div class="wrapper">
+  <div class="page">
+<!--头部样式代码-->
+<!--HEADER_START-->
+<div class="head_bj">
+  <div class="head">
+    <div class="head_top clear">
+      <div class="head_top_left">
+        <ol>
+          <li style="margin-left:0px;"><a href="###">北京</a></li>
+          <li><a href="###">加入收藏</a></li>
+          <li><a href="###">了解物流平台</a></li>
+          <li><a href="###">掌上物流</a></li>
+          <li>客服热线  4000  000  000</li>
+        </ol>
+      </div>
+      <div class="head_top_right">
+        <div class="head_right_user"><a href="javascript:void(0)">用户一</a></div>
+        <div class="head_right_txt">您好，欢迎来到中国位置</div>
+        <div class="head_right_out"><a onclick="logout()" href="javascript:void(0)">退出</a></div>
+      </div>
+    </div>
+    <div class="head_xia">
+      <div class="logo"><a href="###"><img src="images/logo.png" /></a></div>
+      <div class="head_nav">
+        <ul>
+          <li style="margin-left:0px;" ><a href="warehouse_index.html">首页</a></li>
+          <li><a href="goods_add.html">我要发货</a></li>
+          <li><a href="warehouse_add.html">发布仓库</a></li>
+          <li><a href="goods_search_truck.html">找车</a></li>
+          <li class="active"><a href="javascript:void(0)">我的仓库</a></li>
+          <li><a href="goods_list.html">我的货物</a></li>
+          <li><a href="goods_aidercenter.html">个人中心</a></li>
+          <li><a href="feedback.html">意见反馈</a></li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+<!--HEADER_END-->
+
+<!--中间部分样式代码-->
+<div class="center_cont_bj">
+  <div class="center_cont " style="padding-top:10px;">
+    <div class="send_bj">
+      <div class="send_bj_1">
+        <div class="send_list">
+          <div class="send_list_left"><img src="images/pic_1.png" /></div>
+          <div  class="send_list_right send_list0ne">仓库列表</div>
+        </div>
+        <div class="clear content_box" >
+          <ul id="warehouse-list-box">
+            <!-- <li>
+              <div class="content_list_left"><img src="images/2.png" /></div>
+              <div class="content_list_right">
+                <h2> <a href="###"><img src="images/pic_3.png" /></a> &nbsp;河北省廊坊市三河市北村收费站旁&nbsp; </h2>
+                <div class="cont_right_list chang_margin">
+                  <ol>
+                    <li style="padding-left:0px;">原料仓库 </li>
+                    <li> 1600平方米</li>
+                    <li>2000立方米 </li>
+                    <li class="bill_money">1500元/立方米</li>
+                  </ol>
+                </div>
+                <p><span>公司名：北京立方运输公司</span>&nbsp;&nbsp;&nbsp;<span> 有冷库</span> </p>
+              </div>
+              <div class="mycar_xiangqing"><a href="Changku1.html">修改信息</a></div>
+              <div class="mycar_lost mycar_active" style="margin-top:10px;"><a href="###">删除信息</a></div>
+            </li> -->
+          </ul>
+          <!--分页
+            <div class="content_page" id="page_container">
+            </div>--> 
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<!--尾部样式代码-->
+<!--FOOTER_START-->
+<div class="bottom_bj">
+  <div class="bottom">
+    <ul class="clear">
+      <li style="border-right:1px solid #fff;"><a href="###">中国位置物流平台简介</a></li>
+      <li><a href="###">联系我们</a></li>
+    </ul>
+    <div class="bottom_txt">版权所有©2014北斗导航位置服务(北京)有限公司-京ICP备05085635号Copyright © 2014 ChinaLbs International BV.All rights reserved.</div>
+  </div>
+</div>
+<!--FOOTER_END-->
+</div>
+</body>
+</html>

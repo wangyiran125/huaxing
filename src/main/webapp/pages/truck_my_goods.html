@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>我的抢单</title>
+<link href="css/ware.css" type="text/css" rel="stylesheet" />
+<link href="css/indexCar.css" type="text/css" rel="stylesheet" />
+<link href="css/headfoot.css" type="text/css" rel="stylesheet" />
+<link href="css/main.css" type="text/css" rel="stylesheet" />
+<link href="css/theme.css" type="text/css" rel="stylesheet" />
+<script type="text/javascript" src="js/jquery.js"></script>
+<!--[if lt IE 8 ]><script src="js/json2.min.js"></script><![endif]-->
+<script type="text/javascript" src="js/zezao.js" ></script>
+<script type="text/javascript" src="js/logistics.js"></script>
+<script type="text/javascript" src="js/dictHandler.js"></script>
+<script type="text/javascript" src="js/pagination.js"></script>
+<style>
+  .unclickable {cursor: default; background-color: #999; border: 0;}
+  .unclickable a{cursor: default; color: #fff;}
+</style>
+<script>
+  var conf = {};
+
+  function loadGoodsList(from, max){
+	$('#page_container').empty();
+    $.ajax({
+      url: '../api/intents?from='+from+'&max='+max+'&t='+new Date().getTime(),
+      success: function(json){
+        if(json.code == 0){
+          $('#detailed-center-box').html('');
+          var list = json.payload.list;
+          if(!list.length > 0){
+	     		 $('#detailed-center-box').html('<center style="padding:30px;color:#969696;">暂无抢单！</center>');
+	      }else{
+	    	  if(json.payload.total > PAGE_SIZE){
+	     			showPages(json.payload.total, from, max, "loadGoodsList", "page_container");
+	     	  }
+	    	  for (var i = 0; i < list.length; i++) {//TODO 删除车辆按钮的样式需要在main.css里面修改
+	              //根据抢单状态判断“确认抢单”按钮是否有效
+	              //status = 1 按钮显示 “等待货主确认用车”
+	              //status = 2 按钮显示  “货主已拒绝”
+	              //status = 3 货主确认用车，此时 车主显示 “确认到货按钮” 
+	              //status = 4 按钮显示 “等待货主确认到货”（不可点击）
+	              //status = 5 列表中不显示此条 抢单信息
+	              var btnStr = '';//存储确认按钮所在的位置应该显示什么样的内容
+	              switch(list[i].status){
+	              	case -1:
+	                  btnStr = '<div class="mycar_xiangqing mycar_active unclickable">已取消</div>';
+	                  break;
+	                case 1:
+	                  btnStr = '<div class="mycar_xiangqing mycar_active unclickable">等待货主确认发货</div><div onclick="conf.enitIntentId='+list[i].id+';" class="mycar_lost" data-role="updateIntentStatus-btn"><a href="javascript:void(0)">取消</a></div>';
+	                  break;
+	                case 2:
+	                  btnStr = '<div class="mycar_xiangqing mycar_active unclickable">货主已拒绝</div>';
+	                  break;
+	                case 3:
+	                  btnStr = '<div class="mycar_xiangqing mycar_active" data-intentId="'+list[i].id+'" data-departure="'+list[i].departure+'" data-destination="'+list[i].destination+'"><a href="javascript:void(0)">确认提货</a></div>';
+	                  break;
+	                case 4:
+	                  btnStr = '<div class="mycar_xiangqing mycar_active unclickable">等待货主确认到货</div>';
+	                  break;
+	                case 5:
+	                  btnStr = '';
+	                  break;
+	              }
+	              if(btnStr == ''){//状态是5的时候直接进入下一条抢单
+	                continue;
+	              }
+	              var picture = list[i].picture;
+	              picture = (picture == null ? 'images/invalid_pic1.png' : picture.split(',')[0]);
+	              var gid = newGuid();
+	              sessionStorage.setItem(gid, JSON.stringify(list[i]));
+	              $('\
+	                <li>\
+	                  <div class="content_list_left"><img width="125px" src="'+picture+'" /></div>\
+	                  <div class="content_list_right">\
+	                    <h2><img src="images/pic_3.png" />&nbsp;'+parseToDistrictName(list[i].departureProvinceCode)+' ' +parseToDistrictName(list[i].departureCityCode)+' &nbsp;→  &nbsp;   <img src="images/pic_3.png" />&nbsp;'+parseToDistrictName(list[i].destinationProvinceCode)+' ' + parseToDistrictName(list[i].destinationCityCode)+'\</h2>\
+	                    <div class="cont_right_list">\
+	                      <ol>\
+	                        <li style="padding-left:0px;">'+parseToGoodsName(list[i].goodsName)+' </li>\
+	                        <li>'+parseToGoodsType(list[i].goodsType)+' </li>\
+	                        <li>'+list[i].volume+'立方米 </li>\
+	                        <li>'+list[i].quantity+'件</li>\
+	                        <li>'+list[i].weight+'吨</li>\
+	                        <li>'+parseToShippingType(list[i].shippingType)+'</li>\
+	                      </ol>\
+	                    </div>\
+	                    <p> <span style="padding-left:0px;">联系人：'+list[i].goodsOwnerName+'&nbsp;&nbsp;&nbsp;电话：'+list[i].goodsOwnerMobile+'</span>&nbsp;&nbsp;</p>\
+	                    <p>发起方：'+(list[i].initiator == 1 ? '车主' : '货主')+'</p>\
+	                  </div>'+btnStr+'\
+	                </li>\
+	                ').appendTo('#detailed-center-box');
+	              // 
+	            };
+	      }
+          
+          // $('#truck-list-box')
+        }else{
+            logisticsError(json.description);
+        }
+      },
+        error: function(jqXHR, textStatus, errorThrown){
+            ajaxError(jqXHR, textStatus, errorThrown);
+        }
+    });
+  }
+  
+  //取消时修改抢单状态
+  function updateIntentStatus(){
+  	//if(confirm('确定要取消该抢单车辆吗？')){
+  		$.ajax({
+      		type:'put',
+      		url:'../api/intents/'+conf.enitIntentId,
+      		success:function(json){
+      			if(json.code == 0){
+              modalNameSpace.updateIntentStatusModal.cancelHandler();
+      				loadGoodsList(0,PAGE_SIZE);
+      			}else{
+      				logisticsError(json.description);
+      			}
+      		},
+      		error:function(){
+      			
+      		}
+      	})
+  	//}else{
+  	//	return;
+  	//}
+  }
+
+  function loadIntentItem(id){//点击确认按钮的时候，加载某个抢单的详细车辆内容
+    $.ajax({
+      url: '../api/intents/'+id+'/trucks?&t='+new Date().getTime(),
+      success: function(json){
+        if(json.code == 0){
+          $('#edit-catch-box').html('');
+          var list = json.payload;
+          // console.log(list);
+          if(list.length == 0)return;
+          for (var i = 0; i < list.length; i++) {//TODO 删除车辆按钮的样式需要在main.css里面修改
+            if(list[i].truckStatus == 1){//1代表空载 2代表半载 3代表满载
+              $('\
+                 <li>\
+                  <div class="list_5">\
+                      <div class="list5_shang">'+decodeURI(list[i].licensePlateNumber)+'</div>\
+                      <div class="ist5_xia"><span>'+list[i].brand+'</span><span>载重：'+list[i].truckLoad+'吨</span>&nbsp;&nbsp;<span>常驻地：'+decodeURI(list[i].truckStation)+'</span></div>\
+                  </div>\
+                  <div class="list_6"> <a  class="list_8"href="###">空</a> </div>\
+                </li>\
+                ').appendTo('#edit-catch-box');
+
+            }else if(list[i].truckStatus == 2){
+              $('\
+                <li>\
+                  <div class="list_5 list_7">\
+                      <div class="list5_shang">'+decodeURI(list[i].licensePlateNumber)+'</div>\
+                      <div class="ist5_xia"><span>'+decodeURI(list[i].brand)+'</span><span>载重：'+list[i].truckLoad+'吨</span>&nbsp;&nbsp;<span>常驻地：'+decodeURI(list[i].truckStation)+'</span></div>\
+                  </div>\
+                  <div class="list_6"> <a class="list_10" href="###">半载</a> </div>\
+                  <div class="list_9">(&nbsp;剩余&nbsp;<span><input data-id="'+list[i].id+'" class="list_9_inpt" type="text" /></span>&nbsp;吨&nbsp;)&nbsp;* </div>\
+                </li>\
+                ').appendTo('#edit-catch-box');
+
+            }else if(list[i].truckStatus == 3){
+              $('\
+                <li>\
+                  <div class="list_5">\
+                      <div class="list5_shang">'+decodeURI(list[i].licensePlateNumber)+'</div>\
+                      <div class="ist5_xia"><span>'+list[i].brand+'</span><span>载重：'+list[i].truckLoad+'吨</span>&nbsp;&nbsp;<span>常驻地：'+decodeURI(list[i].truckStation)+'</span></div>\
+                  </div>\
+                  <div class="list_6"> <a href="###">满载</a> </div>\
+                </li>\
+                ').appendTo('#edit-catch-box');
+            }
+          };
+        }else{
+          logisticsAlert('加载失败');
+        }
+      },
+        error: function(jqXHR, textStatus, errorThrown){
+            ajaxError(jqXHR, textStatus, errorThrown);
+        }
+    });
+  }
+
+  $(function(){
+    $('#bottom-bj-wrap').load('./tmpl/bottom.html');
+    verifyAndDisplayUserInfo();
+    loadGoodsList(0, PAGE_SIZE);
+    timerNameSpace.timer = setInterval(function(){
+    	 loadGoodsList(0, PAGE_SIZE);
+    },INTERVAL);
+    document.onclick = function(){
+    	clearInterval(timerNameSpace.timer);
+    	timerNameSpace.timer = setInterval(function(){
+    		 loadGoodsList(0, PAGE_SIZE);
+        },INTERVAL);
+    };
+
+    //我的抢单页给确认提货按钮加事件
+    $("#detailed-center-box").delegate('.mycar_active:not(.unclickable)', 'click',function(){//有效的抢单才能点击
+      conf.activeBtn = this;
+      var oMark =document.getElementById('box_mark');
+      var oLogin =document.getElementById('box_logoIn');
+      conf.intentId =$(this).attr('data-intentId');  //获取当前点击按钮
+      
+      oMark.style.display ="block";
+      oLogin.style.display ="block";
+      oMark.style.width = viewWidth() + 'px';
+      oMark.style.height = documentHeight() + 'px';
+      oLogin.style.left = (viewWidth() - oLogin.offsetWidth)/2 + 'px';
+      oLogin.style.top = (viewHeight() - oLogin.offsetHeight)/2-25 + 'px'; 
+
+      loadIntentItem(conf.intentId);
+      $('#edit-catch-title').html('运单：'+$(this).attr('data-departure')+' 至 '+$(this).attr('data-destination')+' 的车辆列表');
+    });
+
+    $('#mywar_delete').click(function(){//取消按钮
+      $('#box_mark').hide();
+      $('#box_logoIn').hide();
+    });
+
+    $(".mywar_submit").click(function(){
+      var $inputs = $('#edit-catch-box').find('input');
+
+      var jsonData = [];
+      $inputs.each(function(){
+        jsonData.push({
+          id: $(this).attr('data-id'),
+          residualCapacity: $(this).val()
+        });
+      });
+
+      for (var i = 0; i < jsonData.length; i++) {
+        // console.log($.isNumeric(jsonData[i].residualCapacity));
+        if(!$.isNumeric(jsonData[i].residualCapacity)){
+          logisticsAlert('请正确填写剩余载重为数字！');
+          return;
+        }
+      };
+      
+      $('#box_mark').hide();
+      $('#box_logoIn').hide();
+
+      $.ajax({
+          type: 'PUT',
+          contentType: 'application/json',
+          data: JSON.stringify(jsonData),
+          url: '../api/intents/'+conf.intentId+'/truckcapacity',
+          success: function(json){
+            if(json.code == 0){
+              window.location.reload();
+            }else{
+                logisticsError(json.description);
+            }
+          },
+          error: function(jqXHR, textStatus, errorThrown){
+              ajaxError(jqXHR, textStatus, errorThrown);
+          }
+      });
+
+    });
+
+    modalNameSpace.updateIntentStatusModal = new TheModal('detailed-center-box', 'updateIntentStatus-btn', '确定要取消该抢单车辆吗？');
+    modalNameSpace.updateIntentStatusModal.realConfirm = updateIntentStatus;
+
+  });
+</script>
+</head>
+
+<body>
+<div class="wrapper">
+<!--头部样式代码-->
+<div class="page">
+  <!--HEADER_START-->
+  <div class="head_bj">
+    <div class="head">
+      <div class="head_top clear">
+        <div class="head_top_left">
+          <ol>
+            <li style="margin-left:0px;"><a href="###">北京</a></li>
+            <li><a href="###">加入收藏</a></li>
+            <li><a href="###">了解物流平台</a></li>
+            <li><a href="###">掌上物流</a></li>
+            <li>客服热线  4000  000  000</li>
+          </ol>
+        </div>
+        <div class="head_top_right">
+          <div class="head_right_user"><a id="view_username" href="###"></a></div>
+          <div class="head_right_txt">您好，欢迎来到中国位置</div>
+          <div class="head_right_out"><a href="javascript:void(0)" onclick="logout()">退出</a></div>
+        </div>
+      </div>
+      <div class="head_xia">
+        <div class="logo"><a href="###"><img src="images/logo.png" /></a></div>
+        <div class="head_nav">
+          <ul>
+            <li style="margin-left:0px;" ><a href="./truck_index.html">首页</a></li>
+            <li ><a href="./truck_search_goods.html">我要找货</a></li>
+            <li ><a href="./truck_addplan.html">发布车源</a></li>
+            <li class="active"><a href="javascript:;">我的抢单</a></li>
+            <li><a href="./truck_myplan.html">我的车源</a></li>
+            <li><a href="###">车辆监控</a></li>
+            <li><a href="aidercenter.html">个人中心</a></li>
+            <li style=" margin-right:0px;"><a href="aider.html">意见反馈</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--HEADER_END-->
+  <!--中间部分样式代码-->
+  <div class="center_cont_bj">
+    <div class="center_cont " style="padding-top:10px;">
+      <div class="send_bj">
+        <div class="send_bj_1">
+          <div class="send_list clear">
+            <div class="car_list_left">
+              <div class="send_list_left"><img src="images/pic_1.png" /></div>
+              <div  class="send_list_right send_list0ne">我的抢单</div>
+            </div>
+          </div>
+          <div class="clear content_box" >
+            <ul id="detailed-center-box">
+              
+            </ul>
+              <!--分页-->
+            <div class="content_page" id="page_container">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!--尾部样式代码-->
+<!--FOOTER_START-->
+<div id="bottom-bj-wrap"></div>
+<!--FOOTER_END-->
+  <div id="box_mark" class="box_mark"></div>
+  <div class="box_logoIn" id="box_logoIn">
+    <div id="close" class="close"><img src="images/pic_14.png" /></div>
+    <div class="mark_title">修改剩余容量</div>
+    <div class="mark_titleright">请按实际情况设定车辆的剩余容量</div>
+    <div class="mark_center">
+      <ul id="edit-catch-box">
+        
+      </ul>
+    </div>
+    <div class="mywar_delete" id="mywar_delete"><a href="javascript:void(0);">取消</a></div>
+    <div class="mywar_submit"><a href="javascript:void(0);">确认</a></div>
+  </div>
+</div>
+</body>
+</html>

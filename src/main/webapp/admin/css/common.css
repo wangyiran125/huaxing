@@ -1,0 +1,122 @@
+/** 清除内外边距 */
+body, h1, h2, h3, h4, h5, h6, hr, p,
+blockquote, /* structural elements 结构元素 */
+dl, dt, dd, ul, ol, li, /* list elements 列表元素 */
+pre, /* text formatting elements 文本格式元素 */
+button, /* form elements 表单元素 */
+th, td, /* table elements 表格元素 */
+img/* img elements 图片元素 */{
+border:medium none;
+margin: 0;
+padding: 0;
+}
+/** 设置默认字体 **/
+body,button, input, select, textarea {
+font: 12px/1.5 '宋体',tahoma, Srial, helvetica, sans-serif; }
+h1, h2, h3, h4, h5, h6 { font-size: 100%; }
+em{font-style:normal;}
+/** 重置列表元素 **/
+ul, ol { list-style: none; }
+/** 重置超链接元素 **/
+a { text-decoration: none; color:#000;}
+a:hover { text-decoration: underline; color:#3363a7; }
+/** 重置图片元素 **/
+img{ border:0px;}
+/** 重置表格元素 **/
+table { border-collapse: collapse; border-spacing: 0; }
+
+/*清除浮动*/
+.clear{
+	height:0px;
+	line-height:0px;
+	font-size:0px;
+	clear:both;
+}
+.fleft{ float:left}
+.fright{ float:right}
+
+.pageTitle{ height:27px; line-height:27px; color:#075587; background:url(../images/page-pageTitle-bg.gif); }
+.pageTitle span{ margin-left:10px;}
+.pageButton{ height:50px;}
+.pageColumn{ background:url(../images/page-bg.gif) repeat-x; padding:5px;}
+
+button{
+	border-style: solid;
+    border-width: 1px;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.2) inset, 0 1px 2px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    display: inline-block;
+    font-size: 13px;
+    line-height: 18px;
+    margin-bottom: 0;
+    padding: 4px 10px;
+    text-align: center;
+    vertical-align: middle;
+}
+.btn{
+    background-color: #f5f5f5;
+    background-image: -moz-linear-gradient(center top , #ffffff, #e6e6e6);
+    background-repeat: repeat-x;
+    border-color: #cccccc #cccccc #b3b3b3;
+    color: #333333;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);
+}
+.btn-primary{
+	background-color: #0074cc;
+    background-image: -moz-linear-gradient(center top , #0088cc, #0055cc);
+    background-repeat: repeat-x;
+    border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+    color: #ffffff;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+}
+
+.dlg{
+	position: absolute; 
+	background-color: #ffffff;
+	padding: 0;
+	-moz-border-radius: 5px 5px 5px 5px;
+	-webkit-border-radius: 5px 5px 5px 5px;
+	border-radius: 5px 5px 5px 5px;
+	border: 1px solid rgba(0, 0, 0, 0.2);
+	display: none;
+}
+.dlg .dlg-title{
+	width: 100%;
+	height: 25px;
+	margin-bottom: 10px;
+	background-color: #f5f5f5;
+	-moz-border-radius: 5px 5px 0px 0px;
+	-webkit-border-radius: 5px 5px 0px 0px;
+	border-radius: 5px 5px 0px 0px;
+	border: 0;
+	border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+	padding-top: 5px;
+	font-size: 14px;
+	font-weight: bold;
+	color: #636363;
+}
+.dlg .dlg-panel{
+	width: 100%;
+	margin: 0;
+	padding: 0;
+	overflow: auto;
+}
+.dlg .dlg-content{
+	width: 90%;
+	margin: auto;
+}
+.dlg .dlg-footer{
+	width: 90%;
+	margin: auto;
+	text-align: center;
+}
+.dlg-footer button{
+	margin: 0 5px;
+}
+.dlg .dlg-content input{
+	margin-bottom: 10px;
+}
+.back{display: inline-block;float: right;padding-right: 20px;}
+.isactivate{width:35px;height:20px;color:white;text-align:center;line-height:20px;cursor:pointer;}
+.forbidden{background-color:#FF4500;}
+.activate{background-color:#3CB371;}

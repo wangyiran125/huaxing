@@ -1,0 +1,155 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>用户积分项管理</title>
+
+<link rel="stylesheet" type="text/css" href="css/common.css"/>
+
+<style type="text/css">
+	body {
+		background:#ffffff;
+	}
+	.form_input{height:30px; line-height:30px; border:1px solid #e2e2e2; border-radius:5px; padding-left:10px; color:#989898; font-size:14px;}
+	.form_txt{color:#666; font-size:14px; line-height:30px; float:left; text-align:right; margin-right:15px; width:200px; display:inline-block;}
+	.input_msg{font-size:13px;color:#ff0000;}
+	.input_item{margin-bottom: 10px;}
+	.pageButton h2{font-size: 20px; font-weight: normal;margin-left: 15px;}
+</style>
+<script type="text/javascript" src="jeasyui/jquery.min.js"></script>
+<!--[if lt IE 8 ]><script src="js/json2.min.js"></script><![endif]-->
+<script type="text/javascript" src="js/logistics.js"></script>
+<script type="text/javascript">
+var scoreItem = {
+		"gold": 0,
+		"silver": 0,
+		//"copper": 0,
+		"common": 0
+};
+var old;
+$(function(){
+	checkUserRole();
+	$.ajax({
+        type:'get',
+        url: "../api/vipLevels/items/all",
+        contentType:'application/json',
+        success:function(json){
+           if(json.code == 0){
+        	   old = json.payload;
+        	   $("#gold").val(old.gold | 0);
+        	   $("#silver").val(old.silver | 0);
+        	   //$("#copper").val(old.copper | 0);
+        	   $("#common").val(old.common | 0);
+           }else{
+        	   alert(json.description);
+           }
+        },
+        error: function(){
+            alert("服务器异常，请稍后尝试！")
+        }
+    })
+	$("#save").click(function(){
+		var btn = $(this);
+		btn.attr("disabled", "disabled");
+		$(".input_msg").each(function(){
+			if($(this).val()){
+				return false;
+			}
+		});
+		scoreItem.gold = $("#gold").val() | 0;
+		scoreItem.silver = $("#silver").val() | 0;
+		//scoreItem.copper = $("#copper").val() | 0;
+		scoreItem.common = $("#common").val() | 0;
+		$.when($.ajax({
+	        type:'PUT',
+	        url: "../api/vipLevels/items",
+	        data:JSON.stringify(scoreItem),
+	        contentType:'application/json',
+	        success:function(json){
+	           if(json.code == 0){
+	        	   old = scoreItem;
+	        	   alert("保存成功");
+	           }else{
+	        	   alert(json.description);
+	           }
+	        },
+	        error: function(){
+	            alert("服务器异常，请稍后尝试！")
+	        }
+	    })
+		).done(function(dict){
+			btn.attr("disabled", false);
+		}).fail(function(){
+			btn.attr("disabled", false);
+			alert("服务器异常，请稍后尝试");
+		})
+	});
+	
+	$("#reset").click(function(){
+		$("#gold").val(old.gold | 0);
+		$("#silver").val(old.silver | 0);
+		//$("#copper").val(old.copper | 0);
+		$("#common").val(old.common | 0);
+	});
+});
+
+function validateDigit(ele){
+	var reg = /^\d+$/;
+	var val = $(ele).val().trim();
+	val = val == "" ? 0 : val;
+	if(reg.test(val)){
+		val *= 1;
+		$(ele).val(val);
+		$(ele).siblings(".input_msg").html("");
+	}else{
+		$(ele).siblings(".input_msg").html("请输入0或正整数");
+	}
+}
+
+</script>
+</head>
+
+<body>
+<div id="contentWrap">
+	<div class="pageTitle"><span><a href="manager_score.html">积分设置</a> &gt; <a href="manager_score.html">积分设置</a></span></div>
+	<div class="pageColumn">
+		<div class="pageButton">
+			<h2>用户积分项设置</h2>
+		</div>
+		<div class="input_item">
+			<div class="form_txt">金卡用户延迟时间（分钟）:</div>
+			<div>
+			    <input id="gold" class="form_input" onblur="validateDigit(this)" type="text" onmouseover="this.style.border='solid 1px #6e783c'" onmouseout="this.style.border='solid 1px #e2e2e2'"/> 分钟
+			    <label id="gold_promt" class="input_msg"></label>
+			</div>
+		</div>
+		<div class="input_item">
+			<div class="form_txt">银卡用户延迟时间（分钟）:</div>
+			<div>
+			    <input id="silver" class="form_input" onblur="validateDigit(this)" type="text" onmouseover="this.style.border='solid 1px #6e783c'" onmouseout="this.style.border='solid 1px #e2e2e2'"/> 分钟
+			    <label id="silver_promt" class="input_msg"></label>
+			</div>
+		</div>
+		<!-- <div class="input_item">
+			<div class="form_txt">铜卡用户延迟时间（分钟）:</div>
+			<div>
+			    <input id="copper" class="form_input" onblur="validateDigit(this)" type="text" onmouseover="this.style.border='solid 1px #6e783c'" onmouseout="this.style.border='solid 1px #e2e2e2'"/> 分钟
+			    <label id="copper_promt" class="input_msg"></label>
+			</div>
+		</div>
+		 -->
+		<div class="input_item">
+			<div class="form_txt">普通用户延迟时间（分钟）:</div>
+			<div>
+			    <input id="common" class="form_input" onblur="validateDigit(this)" type="text" onmouseover="this.style.border='solid 1px #6e783c'" onmouseout="this.style.border='solid 1px #e2e2e2'"/> 分钟
+			    <label id="common_promt" class="input_msg"></label>
+			</div>
+		</div>
+		<div style="margin-top: 25px;">
+			<button id="save" class="btn" style="margin-right: 25px; margin-left: 150px;">保存</button>
+			<button id="reset" class="btn">重置</button>
+		</div>
+	</div>
+</div>
+</body>
+</html>

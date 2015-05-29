@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <script>
+        window.onload = function() {
+            var isSet = false
+            var inteval = setInterval(function() {
+                var search = location.search.replace('?', '')
+                if (isSet) {
+                    clearInterval(inteval)
+                    return
+                }
+                if (search) {
+                    var height = search.split('=')[1]
+                    var doc = parent.parent.document
+                    var frame = doc.getElementById('contentframe')
+                    frame.height = height + 'px';
+                    isSet = true
+                }
+            }, 500)
+        }
+    </script>
+</head>
+<body>
+
+</body>
+</html>

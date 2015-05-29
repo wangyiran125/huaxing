@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>我的货物详情</title>
+<link href="css/ware.css" type="text/css" rel="stylesheet" />
+<link href="css/headfoot.css" type="text/css" rel="stylesheet" />
+<link href="css/main.css" type="text/css" rel="stylesheet" />
+<link href="css/theme.css" type="text/css" rel="stylesheet" />
+<style>
+  .unclickable1 {cursor: default; background-color: #999; border: 0;}
+  .unclickable2 {cursor: default; background-color: #39ac6a; border: 0;}
+  .unclickable1 a,.unclickable2 a {cursor: default; color: #fff;}
+</style>
+<script type="text/javascript" src="js/jquery.js"></script>
+<!--[if lt IE 8 ]><script src="js/json2.min.js"></script><![endif]-->
+<script type="text/javascript" src="js/index.js" ></script> 
+<script type="text/javascript" src="js/zezao.js" ></script>   
+<script type="text/javascript" src="js/logistics.js"></script>
+<script type="text/javascript" src="js/dictHandler.js"></script>
+<script type="text/javascript" src="js/pagination.js"></script>
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=YZC6KcQWrpeArpblSwXOQyuG"></script>
+<script type="text/javascript" src="js/mapJustShow.js"></script>
+<script type="text/javascript">
+    //根据参数获取当前数据
+    var gid = $.getUrlParam("gid")
+    var goods = JSON.parse(sessionStorage.getItem(gid));
+    var conf = {};
+    //当前货物默认状态为刚发布
+    conf.status = 1;
+    var conf_truck = [];
+    function loadGoods(){
+    	if(goods != null){
+    		var picture = goods.picture;
+    		picture = (picture == null ? 'images/invalid_pic1.png' : picture.split(',')[0]);
+    		$(".content_list_left").html("<img width='125px' src='"+picture+"'/>");
+    		$("#departure").html(parseToDistrictName(goods.departureProvinceCode)+' '+parseToDistrictName(goods.departureCityCode));
+        	$("#destination").html(parseToDistrictName(goods.destinationProvinceCode)+' '+parseToDistrictName(goods.destinationCityCode));
+        	$("#goodsName").html(parseToGoodsName(goods.goodsName));
+        	$("#goodsType").html(parseToGoodsType(goods.goodsType));
+        	$("#shippingType").html(parseToShippingType(goods.shippingType));
+        	$("#weight").html(goods.weight+'吨');
+        	$("#volume").html(goods.volume+'立方米');
+        	$("#quantity").html(goods.quantity+'件');
+        	$("#contactName").html(goods.contactName);
+        	$("#publishTime").html('发布时间：'+formatterDate(goods.publishTime));
+        	$("#validity").html(goods.validity == null? "不详" : (goods.validity == -1 ? "长期货源" : goods.validity));
+        	$("#remark").html(goods.remark);
+    	}else{
+    		$("#goods-box").html("");
+    	}
+    }
+    function loadOrderIntent(from,max){
+      mapNameSpace.isOrderIntent = true;//抢单
+      mapNameSpace.locationArr = [];//存储车辆的位置名称,清空
+      mapNameSpace.showLocations();//mapJustShow.js中的函数，每次重新下载之后重新渲染地图
+    	$("#orderintent-list-box").empty();
+    	$('#page_container').empty();
+    	$.ajax({
+    		type:'get',
+    		url:'../api/intents/'+goods.id+'?from='+from+'&max='+max+'&t='+new Date(),
+    		success:function(json){
+    			if(json.code == 0){
+    				if(json.payload.total == 0){
+    					$(".content_list").html("<center style='padding:30px;color:#838B83;'>暂无抢单车辆</center>");
+    				}else{
+    					list = json.payload.list;
+    					if(json.payload.total > PAGE_SIZE){
+    		     			showPages(json.payload.total, from, max, "loadOrderIntent", "page_container");
+    		     		}
+
+    					for(var i=0;i<list.length;i++){
+
+                //一条抢单里面可能有多辆车抢单
+                for (var j = 0; j < list[i].trucks.length; j++) {
+                  mapNameSpace.locationArr.push({
+                    'latitude': list[i].trucks[j].lat,
+                    'longitude': list[i].trucks[j].lan,
+                    'name': list[i].truckLabel,
+                    'extraInfo':list[i].truckOwnerName+'|'+list[i].truckOwnerMobile
+                  });
+                };
+    						//根据抢单状态判断“确认抢单”按钮是否有效
+    			            //status = 1 按钮显示 “确认发货”
+    			            //status = 2 按钮显示  “已拒绝”
+    			            //status = 3 运货中
+    			            //status = 4确认到货
+    			            var btnStr = '';//存储确认按钮所在的位置应该显示什么样的内容
+    			            //如果当前抢单状态大于等于3，表示该货物至少已在运货中，此时记录该状态
+    			            if(list[i].status >= 3){
+	    			            conf.status = list[i].status;
+    			            }
+    			            switch(list[i].status){
+    			              case -1:
+    			                btnStr = '<div class="mycar_xiangqing unclickable1">车主已取消</div>';
+    			                break;
+    			              case 1:
+    			                btnStr = '<div connectBtn="'+i+'" onclick="loadTrucks('+list[i].id+')" class="mycar_xiangqing mycar_active"><a href="javascript:void(0)">查看车辆详情</a></div><div onclick="conf.enitIntentId='+list[i].id+';" class="mycar_lost" data-role="updateIntentStatus-btn"><a href="javascript:void(0)">拒绝</a></div>';
+    			                break;
+    			              case 2:
+    			                btnStr = '<div class="mycar_xiangqing unclickable1">已拒绝</div>';
+    			                break;
+    			              case 3:
+      			                btnStr = '<div class="mycar_xiangqing unclickable2">等待车主提货</div>';
+      			                break;
+    			              case 4:
+    			            	btnStr = '<div onclick="confrimOrder('+list[i].id+')" class="mycar_xiangqing"><a href="javascript:;">确认到货</a></div>';
+    			            	break;
+    			              case 5:
+    			            	btnStr = '<div class="mycar_xiangqing unclickable1">已确认到货</div>';
+    			            	break;
+    			            };
+    			            var avatar = list[i].avatar;
+    			            avatar = (avatar == null) ? 'images/invalid_pic1.png' : avatar.split(',')[0];
+    			            var vipLevel = list[i].vipLevel;
+    			            var strLevel = '';
+    			            switch(vipLevel){
+    			            	case 1:
+    			            		strLevel = '<img src="images/pic_11.png" /><span style="color: #FED042; font-size: 14px;">金卡用户</span>';
+    			            		break;
+    			            	case 2:
+    			            		strLevel = '<img src="images/pic_12.png" /><span style="color: #B3B6BF; font-size: 14px;">银卡用户</span>';
+    			            		break;	
+    			            }
+    						$('\
+    							<li>\
+    				                <div class="content_list_left"><img width="125px" src="'+avatar+'" /></div>\
+    				                <div class="content_list_right">\
+    				                  <h2> '+list[i].truckOwnerName+strLevel+'</h2>\
+    				                  <div class="cont_right_list">联系方式：'+list[i].truckOwnerMobile+'</div>\
+    				                  <p> 车源数量：'+list[i].trucks.length+'辆</p>\
+    				                  <p>发起方：'+(list[i].initiator == 1?"车主":"货主")+'</p>\
+    				                </div>'+btnStr+'\
+    				           	</li>\
+    						').appendTo('#orderintent-list-box');
+    					}
+              mapNameSpace.showLocations();//mapJustShow.js中的函数，每次重新下载之后重新渲染地图
+    				}
+    			}
+    		}
+    	})
+    }
+    
+   	//遮罩层----加载车辆列表
+    function loadTrucks(id){
+    	//获取IntentId;
+    	conf.intentId = id;
+    	$("#truck-list-box").empty();
+		$.ajax({
+			type:'get',
+			url:'../api/intents/'+id+'/trucks',
+			success:function(json){
+				if(json.code == 0){
+					list = json.payload;
+					for(var i=0;i<list.length;i++){
+						var truckPicture = list[i].truckPicture;
+						truckPicture = (truckPicture == null) ? 'images/invalid_pic1.png' : truckPicture.split(',')[0];
+						$('\
+								<li>\
+			                    <div class="list_1"><img style="margin:10px 0 0 10px;" width="93px" src="'+truckPicture+'" /></div>\
+			                    <div class="list_2">\
+			                        <ol>\
+			                            <li>'+decodeURI(list[i].licensePlateNumber)+'</li>\
+			                            <li>'+parseToTruckType(list[i].type)+'</li>\
+			                            <li>载重'+list[i].truckLoad+'吨</li>\
+			                            <li>常驻地：'+decodeURI(list[i].truckStation)+'</li>\
+			                        </ol>\
+			                    </div>\
+			                    <div class="list_4">\
+			                        <div><input '+function(){if(list[i].truckStatus == 1) return "checked"}()+' value="1,'+list[i].id+'" type="radio" name="'+i+'" />&nbsp;&nbsp;空</div>\
+			                        <div><input '+function(){if(list[i].truckStatus == 2) return "checked"}()+' value="2,'+list[i].id+'" type="radio" name="'+i+'"/>&nbsp;&nbsp;半载</div>\
+			                        <div><input '+function(){if(list[i].truckStatus == 3) return "checked"}()+' value="3,'+list[i].id+'" type="radio" name="'+i+'" />&nbsp;&nbsp;满载</div>\
+			                    </div>\
+			             </li>\
+    						').appendTo('#truck-list-box');
+					}
+				}
+			},
+            error: function(jqXHR, textStatus, errorThrown){
+                ajaxError(jqXHR, textStatus, errorThrown);
+            }
+		})
+    }
+    //删除货物
+    function goodsRealConfirm(){
+    	$.ajax({
+        type:'delete',
+        url:'../api/goods/'+goods.id,
+        success:function(data){
+          if(data.code == 0){
+            //删除存储的对象
+            sessionStorage.removeItem($.getUrlParam("gid"));
+            location.href = "goods_list.html";
+          }else{
+            logisticsError(data.description);
+          }
+        },
+        error:function(){
+          //服务器端异常
+        }
+      });
+    }
+    //修改货物
+    function update(){
+    	if(conf.status >= 3){
+    		logisticsError('该货物已经处于运输中或完成状态，不可修改');
+	    	return;
+    	}
+    	location.href="goods_update.html?gid="+gid;
+    }
+    function eachRadio(){
+    	var conf_truck = [];
+    	$(".list_4 input[type='radio']").each(function(){
+    		if($(this).is(":checked")){
+    			var truck_ = {};
+    			var val_ = $(this).val().split(',');
+    			
+    			conf_truck.push({"id":val_[1],"truckStatus":val_[0]});
+    		}
+    	});
+    	return conf_truck;
+    }
+    //拒绝时修改抢单状态
+    function updateIntentStatus(){
+    	//if(confirm('确定要拒绝该抢单车辆吗？')){
+    		$.ajax({
+        		type:'put',
+        		url:'../api/intents/'+conf.enitIntentId,
+        		success:function(json){
+        			if(json.code == 0){
+                modalNameSpace.updateIntentStatusModal.cancelHandler();
+        				loadOrderIntent(0,PAGE_SIZE);
+        			}else{
+        				logisticsError(json.description);
+        			}
+        		},
+        		error:function(){
+        			
+        		}
+        	})
+    	//}else{
+    		//return;
+    	//}
+    }
+    //修改车的状态
+    function updateTruckStatu(){
+    	if(! eachRadio().length > 0){
+    		logisticsAlert("您还没有选择任何一辆车");
+    		return;
+    	}else{
+    		$.ajax({
+        		type:'put',
+        		url:'../api/intents/'+conf.intentId+'/truckstatus',
+        		data:JSON.stringify(eachRadio()),
+        		dataType:'json',
+        		contentType:'application/json',
+        		success:function(json){
+					if(json.code == 0){
+						$(".box_logoIn").hide();
+						$("#box_mark").hide();
+						loadOrderIntent(0,100);
+					}else{
+						logisticsError(json.description);
+					}
+        		},
+        		error:function(){
+        			
+        		}
+        	})
+    	}
+    }
+    
+    //确认到货
+    function confrimOrder(id){
+    	$.ajax({
+    		type:'put',
+    		url:'../api/intents/'+id+'/confirm',
+    		success:function(json){
+    			if(json.code == 0){
+    				loadOrderIntent(0,100);
+    			}else{
+    				logisticsError(json.description);
+    			}
+    		},
+    		error:function(){
+    			//服务器端异常
+    		}
+    	})
+    }
+    
+    $(function(){
+        verifyAndDisplayUserInfo();
+        loadGoods();
+        loadOrderIntent(0,PAGE_SIZE);
+        $(document).delegate('.list_4 input[type="radio"]','click',function(truckId){
+        	$(this).siblings().attr("checked",false);
+        });
+
+        $('#map-mode').click(function(){
+          setTimeout(function(){//设置时间差为了地图挪到标记所处的位置
+            mapNameSpace.showLocations();
+          },100);
+        });
+        timerNameSpace.timer = setInterval(function(){
+        	loadOrderIntent(0,PAGE_SIZE);
+        },INTERVAL);
+        document.onclick = function(){
+        	clearInterval(timerNameSpace.timer);
+        	timerNameSpace.timer = setInterval(function(){
+        		loadOrderIntent(0,PAGE_SIZE);
+            },INTERVAL);
+        };
+
+        modalNameSpace.goodsDeleteModal = new TheModal('goods-box', 'delete-goods-btn', '您确认要删除本货物？');
+        modalNameSpace.goodsDeleteModal.realConfirm = goodsRealConfirm;
+
+        modalNameSpace.updateIntentStatusModal = new TheModal('orderintent-list-box', 'updateIntentStatus-btn', '确定要取消该抢单车辆吗？');
+        modalNameSpace.updateIntentStatusModal.realConfirm = updateIntentStatus;
+    })    
+</script>   
+</head>
+
+<body>
+<div class="wrapper"> 
+  <div class="page">
+<!--头部样式代码-->
+<!--HEADER_START-->
+<div class="head_bj">
+  <div class="head">
+    <div class="head_top clear">
+      <div class="head_top_left">
+        <ol>
+          <li style="margin-left:0px;"><a href="###">北京</a></li>
+          <li><a href="###">加入收藏</a></li>
+          <li><a href="###">了解物流平台</a></li>
+          <li><a href="###">掌上物流</a></li>
+          <li>客服热线  4000  000  000</li>
+        </ol>
+      </div>
+      <div class="head_top_right">
+        <div class="head_right_user"><a id="view_username" href="###"></a></div>
+        <div class="head_right_txt">您好，欢迎来到中国位置</div>
+        <div class="head_right_out"><a href="javascript:void(0)" onclick="logout()">退出</a></div>
+      </div>
+    </div>
+    <div class="head_xia">
+      <div class="logo"><a href="###"><img src="images/logo.png" /></a></div>
+      <div class="head_nav">
+        <ul>
+          <li style="margin-left:0px;" ><a href="goods_index.html">首页</a></li>
+          <li><a href="goods_add.html">我要发货</a></li>
+          <li><a href="goods_search_warehouse.html">找仓库</a></li>
+          <li><a href="goods_search_truck.html">找车</a></li>
+          <li><a href="goods_aidercenter.html">个人中心</a></li>
+          <li class="active"><a href="###">我的货物</a></li>
+          <li style=" margin-right:0px;"><a href="goods_feedback.html">意见反馈</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+<!--HEADER_END-->
+<!--中间部分样式代码-->
+<div class="center_cont_bj">
+  <div class="center_cont " style="padding-top:10px;">
+    <div class="send_bj">
+      <div class="send_bj_1">
+        <div class="send_list">
+         <div class="car_list_left">
+                  <div class="send_list_left"></div>
+                  <div  class="send_list_right send_list0ne">我的货物列表</div>
+               </div>
+              <div class="car_list_right">
+             
+              <div  class="send_list_right car_txt">&nbsp;<a href="goods_list.html">&nbsp;返回货物列表 </a></div>
+             </div>
+        </div>
+        <div class="clear content_box" >
+          <ul id="goods-box">
+           <li>
+              <div class="content_list_left"></div>
+              <div class="content_list_right">
+                <h2> <img src="images/pic_3.png" /> &nbsp;<span id="departure"></span> &nbsp; <span>→</span> &nbsp; <img src="images/pic_3.png" /> &nbsp;<span id="destination"></span> </h2>
+                <div class="cont_right_list">
+                  <ol>
+                    <li id="goodsName" style="padding-left:0px;"></li>
+                    <li id="goodsType"></li>
+                    <li id="shippingType"></li>
+                    <li id="weight"></li>
+                    <li id="volume"></li>
+                    <li id="quantity"></li>
+                  </ol>
+                </div>
+                <p><span id="publishTime"></span>&nbsp;&nbsp;信息有效期：<span id="validity"></span> </p>
+                <p id="remark"></p>
+              </div>
+               <div class="mycar_xiangqing" onclick="update()"><a href="javascript:void(0)">修改信息</a></div>
+              <div class="mycar_lost" onclick="if(conf.status >= 3){logisticsError('该货物已经处于运输中或完成状态，不可删除');modalNameSpace.noShowModal=true;}" data-role="delete-goods-btn"><a href="javascript:void(0)">删除</a></div>
+            </li>
+          </ul>
+        </div>
+      </div>
+      
+       <div class="send_bj " style=" margin-top:9px;">
+      <div class="send_bj_1">
+        <div class="send_list">
+          <ul>
+            <li class="send_active top_1">
+              <div class="send_list_left"><img src="images/pic_8.png" /></div>
+              <div class="send_list_right">抢单车辆</div>
+            </li>
+            <li class="top_2" id="map-mode">
+              <div class="send_list_left"><img src="images/pic_9.png" /></div>
+              <div class="send_list_right">地图模式</div>
+            </li>
+          </ul>
+        </div>
+        
+        <div class="content_list" style="display:block;"> 
+          <!--第一页-->
+          <div class="content_box">
+            <ul id="orderintent-list-box">
+              <!-- <li>
+                <div class="content_list_left"><img src="images/2.png" /></div>
+                <div class="content_list_right">
+                  <h2> <a href="###">车主一</a><strong><a href="###"><img src="images/pic_11.png" /></a>金牌会员</strong></h2>
+                  <div class="cont_right_list">
+                    联系方式：132188888
+                  </div>
+                  <p> 车源货量：3辆</p>
+                  <p>说明：求货源速度联系求货源速度联系求货源速度联系求货源速度联系求货源速度联系求货源速度联</p>
+                </div>
+                <div class="content_jiage"><a href="###">运价面议</a></div>
+               <div onclick="loadTrucks(6)" class="mycar_xiangqing mycar_active"><a href="###">用车发货</a></div>
+              <div class="mycar_lost"><a href="###">拒绝</a></div>
+              </li> -->
+<!--              <li>
+                <div class="content_list_left"><img src="images/2.png" /></div>
+                <div class="content_list_right">
+                  <h2> <a href="###">车主一</a><strong><a href="###"><img src="images/pic_12.png" /></a>银牌会员</strong></h2>
+                  <div class="cont_right_list">
+                    联系方式：132188888
+                  </div>
+                  <p> 车源货量：3辆</p>
+                  <p>说明：求货源速度联系求货源速度联系求货源速度联系求货源速度联系求货源速度联系求货源速度联</p>
+                </div>
+                <div class="content_jiage"><a href="###">运价面议</a></div>
+               <div class="mycar_xiangqing mycar_active"><a href="###">用车发货</a></div>
+              <div class="mycar_lost"><a href="###">拒绝</a></div>
+              </li>
+               <li>
+                <div class="content_list_left"><img src="images/2.png" /></div>
+                <div class="content_list_right">
+                  <h2> <a href="###">车主一</a><strong><a href="###"><img src="images/pic_13.png" /></a>银牌会员</strong></h2>
+                  <div class="cont_right_list">
+                    联系方式：132188888
+                  </div>
+                  <p> 车源货量：3辆</p>
+                  <p>说明：求货源速度联系求货源速度联系求货源速度联系求货源速度联系求货源速度联系求货源速度联</p>
+                </div>
+                <div class="content_jiage"><a href="###">运价面议</a></div>
+               <div class="mycar_xiangqing mycar_active"><a href="###">用车发货</a></div>
+              <div class="mycar_lost"><a href="###">拒绝</a></div>
+              </li>
+             
+ -->            </ul>
+          </div>
+          
+          <!--分页-->
+            <div class="content_page" id="page_container">
+            </div>
+        </div>
+        </div>
+        
+        <!--地图代码-->
+        <div class="content_list">
+            <div id="allmap" style="height:400px; width:100%"></div>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+      
+    </div>
+  </div>
+</div>
+<!--尾部样式代码-->
+<!--FOOTER_START-->
+<div class="bottom_bj">
+  <div class="bottom">
+    <ul class="clear">
+      <li style="border-right:1px solid #fff;"><a href="###">中国位置物流平台简介</a></li>
+      <li><a href="###">联系我们</a></li>
+    </ul>
+    <div class="bottom_txt">版权所有©2014北斗导航位置服务(北京)有限公司-京ICP备05085635号Copyright © 2014 ChinaLbs International BV.All rights reserved.</div>
+  </div>
+</div>
+<!--FOOTER_END-->
+<div id="box_mark" class="box_mark"></div>
+<div class="box_logoIn" id="box_logoIn">
+    <div id="close" class="close"><img src="images/pic_14.png" /></div>
+    <div class="mark_title">确认发货</div>
+    <div class="mark_chelist">设置车辆实际载货状态，满载车辆在确认到货前不能再抢单。</div>
+    <div class="mark_titleright">此操作不可撤销，请确保在货物发出后进行此操作。</div>
+    <div class="mark_center">
+        <ul id="truck-list-box">
+           <!--  <li>
+                    <div class="list_1"><a href="###"><img src="images/9.png" /></a></div>
+                    <div class="list_2">
+                        <ol>
+                            <li>货车</li>
+                            <li>载重10吨</li> 
+                            <li>常驻地：天津</li> 
+                           
+                        </ol>
+                    </div>
+                    <div class="list_3">
+                       <a href="###">满载</a>
+                    </div>
+                    <div class="list_4">
+                        <div><input type="checkbox" />&nbsp;&nbsp;空</div>
+                        <div><input type="checkbox" />&nbsp;&nbsp;满</div>
+                        <div><input type="checkbox" />&nbsp;&nbsp;半载</div>
+                    </div>
+             </li>
+              -->
+        </ul>
+    </div>
+   <div onclick="javascript:$('#box_mark').hide();$('.box_logoIn').hide();" class="mywar_delete"><a href="javascript:void(0);">取消</a></div>
+   <div onclick="updateTruckStatu()" class="mywar_submit"><a href="javascript:void(0);">确认发货</a></div>
+</div>
+</body>
+</html>

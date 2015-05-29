@@ -1,0 +1,300 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>中国位置物流管理平台</title>
+<link href="css/style.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="jeasyui/jquery.min.js"></script>
+<!--[if lt IE 8 ]><script src="js/json2.min.js"></script><![endif]-->
+<script type="text/javascript" src="js/jquery.md5.js"></script>
+<script type="text/javascript" src="js/logistics.js"></script>
+<script type="text/javascript">
+$(function(){
+	verifyAndDisplayAdminInfo();
+	//setMenuHeight
+	$('.menu').height($(window).height()-51-27-26);
+	$('.sidebar').height($(window).height()-51-27-26);
+	$('.page').height($(window).height()-51-27-26);
+	$('.page iframe').width($(window).width()-15-168);
+	
+	//menu on and off
+	$('.sbtn').click(function(){
+		$('.menu').toggle();
+		
+		if($(".menu").is(":hidden")){
+			$('.page iframe').width($(window).width()-15+5);
+		}else{
+			$('.page iframe').width($(window).width()-15-168);
+		}
+	});
+		
+	//
+	$('.subMenu').click(function(){
+		$(this).find('ul').toggle();
+	});
+	$('.subMenu a').click(function(event){
+		event.stopPropagation();
+		$(this).next('ul').show();
+	});
+	$('.subMenu ul').click(function(event){
+		event.stopPropagation();
+	});
+});
+function userInfo(){
+	showDlg("#dlg-user", "用户信息");
+	$("#uinfo_error_msg").html("");
+	//$("#uinfo_form")[0].reset();
+	$("#name").val(logisticsUserinfo.name || "");
+	$("#phone").val(logisticsUserinfo.phone || "");
+	$("#mobile").val(logisticsUserinfo.mobile || "");
+	$("#email").val(logisticsUserinfo.email || "");
+	$("#qq").val(logisticsUserinfo.qq || "");
+}
+
+function showDlg(dlgDiv, title){
+	var $dlg = $(dlgDiv);
+	var dHeight = $dlg.height();
+	var top = ($(window).height() - dHeight)/2;
+    var left = ($(window).width() - $dlg.width())/2;
+    var scrollTop = $(document).scrollTop();
+    var scrollLeft = $(document).scrollLeft();
+    $dlg.css( { position : 'absolute', 'top' : top + scrollTop, left : left + scrollLeft } ).show();
+    $dlg.find(".dlg-panel").css("height", (dHeight - 42) + "px");
+    $dlg.find(".dlg-title").html(title);
+}
+function closeDlg(dlg){
+	$(dlg).hide();
+}
+
+function saveAdmin(){
+	var uinfo = logisticsUserinfo;
+	uinfo.name = $("#name").val() || "";
+	uinfo.phone = $("#phone").val() || "";
+	uinfo.mobile = $("#mobile").val() || "";
+	uinfo.email = $("#email").val() || "";
+	uinfo.qq = $("#qq").val() || "";
+
+	$.when($.ajax({
+        url: '../api/users',
+        contentType: 'application/json',
+        data: JSON.stringify(uinfo),
+        type: 'PUT',
+        async: false,
+        success: function(json){
+        	if(json.code == 0){
+        		alert("保存成功");
+        		closeDlg('#dlg-user');
+        		logisticsUserinfo = uinfo;
+        	}else{
+        		$("#uinfo_error_msg").html(json.description);
+        	}
+        },
+        error: function(json){
+            alert("服务器异常，请稍后尝试！")
+        }
+    }))
+    .done( function(userData)
+    {
+       if(userData.code == 0 && userData.payload.username){
+            logisticsUserinfo = userData.payload;
+            viewUserCenter();
+       }else {
+           location.href = "login.html";
+       }
+    })
+    .fail(function(jqXHR, textStatus, errorThrown) {
+        alert("登录信息获取失败。请确认网络或服务器端运行状态是否正常后，再次刷新本页面。\n相关信息:status=" + textStatus.toString() + ", error="+errorThrown);
+        
+        location.href = "login.html";
+    });
+}
+
+function updatePwd(){
+	showDlg("#dlg-password", "用户信息");
+	$("#password_error_msg").html("");
+	$("#loginname").val(logisticsUserinfo.username || "");
+	$("#oldpassword").val("");
+	$("#newpassword").val("");
+}
+function savePassword(){
+	var passworInfo = {
+			oldPassword: $.md5($("#oldpassword").val() || ""),
+			newPassword: $.md5($("#newpassword").val() || "")
+	}
+
+	$.when($.ajax({
+        url: '../api/users/password',
+        contentType: 'application/json',
+        data: JSON.stringify(passworInfo),
+        type: 'PUT',
+        async: false,
+        success: function(json){
+        	if(json.code == 0){
+        		alert("保存成功");
+        		closeDlg('#dlg-password');
+        		logisticsUserinfo = uinfo;
+        	}else{
+        		$("#password_error_msg").html(json.description);
+        	}
+        },
+        error: function(json){
+            alert("服务器异常，请稍后尝试！")
+        }
+    }))
+    .done( function(userData)
+    {
+    })
+    .fail(function(jqXHR, textStatus, errorThrown) {
+        alert("登录信息获取失败。请确认网络或服务器端运行状态是否正常后，再次刷新本页面。\n相关信息:status=" + textStatus.toString() + ", error="+errorThrown);
+        
+        location.href = "login.html";
+    });
+}
+</script>
+
+
+</head>
+
+<body>
+<!--个人信息 -->
+<div id="dlg-user" class="dlg" style="width:310px; height:300px;">
+    <div class="dlg-title"></div>
+    <div class="dlg-panel">
+    <div class="dlg-content">
+    <form id="uinfo_form">
+        <table cellpadding="5">
+            <tr>
+                <td style="vertical-align: top;">姓名:</td>
+                <td>
+                    <input  id="name" type="text" style="width: 200px; height: 23px; text-indent: 5px; border-radius: 4px; border: 1px solid rgba(0, 0, 0, 0.2);"/>
+                </td>
+            </tr>
+            <tr>
+                <td style="vertical-align: top;">手机:</td>
+                <td>
+                    <input  type="text" id="phone" style="width: 200px; height: 23px; text-indent: 5px; border-radius: 4px; border: 1px solid rgba(0, 0, 0, 0.2);"/>
+                </td>
+            </tr>
+            <tr>
+                <td style="vertical-align: top;">电话:</td>
+                <td>
+                    <input type="text" id="mobile" style="width: 200px;height: 23px; text-indent: 5px; border-radius: 4px; border: 1px solid  rgba(0, 0, 0, 0.2);"/>
+                </td>
+            </tr>
+            <tr>
+                <td style="vertical-align: top;">邮箱:</td>
+                <td>
+                    <input type="text" id="email" style="width: 200px;height: 23px; text-indent: 5px; border-radius: 4px; border: 1px solid  rgba(0, 0, 0, 0.2);"/>
+                </td>
+            </tr>
+            <tr>
+                <td style="vertical-align: top;">QQ号:</td>
+                <td>
+                    <input type="text" id="qq" style="width: 200px;height: 23px; text-indent: 5px; border-radius: 4px; border: 1px solid  rgba(0, 0, 0, 0.2);"/>
+                </td>
+            </tr>
+        </table>
+    </form>
+    <div id="uinfo_error_msg" style="color: #ff0000; height: 20px;"></div>
+    </div>
+    <div class="dlg-footer">
+    	<button class="btn-primary" onclick="saveAdmin()">保存</button>
+    	<button class="btn" onclick="closeDlg('#dlg-user')">取消</button>
+    </div>
+    </div>
+</div>
+
+<!--修改密码 -->
+<div id="dlg-password" class="dlg" style="width:310px; height:220px;">
+    <div class="dlg-title"></div>
+    <div class="dlg-panel">
+    <div class="dlg-content">
+    <form id="pwd_form">
+        <table cellpadding="5">
+            <tr>
+                <td style="vertical-align: top;">用户名:</td>
+                <td>
+                    <input  id="loginname" type="text" style="width: 200px; height: 23px; text-indent: 5px; border-radius: 4px; border: 1px solid rgba(0, 0, 0, 0.2);" readonly="readonly"/>
+                </td>
+            </tr>
+            <tr>
+                <td style="vertical-align: top;">原密码:</td>
+                <td>
+                    <input  type="password" id="oldpassword" style="width: 200px; height: 23px; text-indent: 5px; border-radius: 4px; border: 1px solid rgba(0, 0, 0, 0.2);"/>
+                </td>
+            </tr>
+            <tr>
+                <td style="vertical-align: top;">新密码:</td>
+                <td>
+                    <input type="password" id="newpassword" style="width: 200px;height: 23px; text-indent: 5px; border-radius: 4px; border: 1px solid  rgba(0, 0, 0, 0.2);"/>
+                </td>
+            </tr>
+        </table>
+    </form>
+    <div id="password_error_msg" style="color: #ff0000; height: 20px;"></div>
+    </div>
+    <div class="dlg-footer">
+    	<button class="btn-primary" onclick="savePassword()">保存</button>
+    	<button class="btn" onclick="closeDlg('#dlg-password')">取消</button>
+    </div>
+    </div>
+</div>
+
+<div id="wrap">
+	<div id="header">
+	    <div class="logo fleft"></div>
+	    <a class="logout fright" title="退出" onclick="logout()" href="javascript:void(0);"> </a>
+	    <div class="fright" id="usermsg">欢迎您：<a href="javascript:void(0);" title="查看并修改个人信息" id="uname" onclick="userInfo()"></a>
+	    <a href="javascript:void(0);" title="修改个人密码" onclick="updatePwd()">修改密码</a>
+	    </div>
+	    <div class="clear"></div>
+	    <div class="subnav">
+	    	<div class="subnavLeft fleft"></div>
+	        <div class="fleft"></div>
+	        <div class="subnavRight fright"></div>
+	    </div>
+    </div><!--#header -->
+    <div id="content">
+	    <div class="space"></div>
+	    <div class="menu fleft">
+	    	<ul>
+	        	<li class="subMenuTitle">中国位置物流平台</li>
+	            <li class="subMenu"><a href="chart_order.html" target="right">统计分析</a>
+	            	<ul>
+	                	<li><a href="chart_order.html" target="right">运单统计</a></li>
+	                    <li><a href="chart_user.html" target="right">用户统计</a></li>
+	                    <li><a href="chart_goods.html" target="right">发货统计</a></li>
+	                    <li><a href="chart_goods_intent.html" target="right">运货统计</a></li>
+	                </ul>
+	            </li>
+	            <li class="subMenu"><a href="manager_admin.html" target="right">人员管理</a>
+	            	<ul>
+	                	<li><a href="manager_admin.html" target="right">管理员管理</a></li>
+	                    <li><a href="manager_truckowner.html" target="right">车主管理</a></li>
+	                    <li><a href="manager_goodsowner.html" target="right">货主管理</a></li>
+	                    <li><a href="manager_warehouseowner.html" target="right">仓库主管理</a></li>
+	                </ul>
+	            </li>
+	            <li class="subMenu"><a href="manager_score.html" target="right">系统设置</a>
+	            	<ul>
+	                	<li><a href="manager_score.html" target="right">积分设置</a></li>
+	                	<li><a href="manager_viplevel.html" target="right">车主延时设置</a></li>
+	                </ul>
+	            </li>
+	            <li class="subMenu"><a href="manager_feedback.html" target="right">意见反馈</a>
+	            	<ul>
+	                	<li><a href="manager_feedback.html" target="right">意见反馈</a></li>
+	                </ul>
+	            </li>
+	        </ul>
+	    </div>
+	    <div class="sidebar fleft"><div class="sbtn"></div></div>
+	    <div class="page">
+	    	<iframe width="100%" scrolling="auto" height="100%"  style="border: medium none;" src="chart_order.html" id="rightMain" name="right"></iframe>
+	    </div>
+    </div><!--#content -->
+    <div class="clear"></div>
+    <div id="footer"></div><!--#footer -->
+</div><!--#wrap -->
+</body>
+</html>

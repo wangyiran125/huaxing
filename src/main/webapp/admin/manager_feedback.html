@@ -1,0 +1,74 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>意见反馈</title>
+
+<link rel="stylesheet" type="text/css" href="css/common.css"/>
+<link rel="stylesheet" type="text/css" href="jeasyui/themes/gray/easyui.css"/>
+<link rel="stylesheet" type="text/css" href="jeasyui/themes/icon.css"/>
+
+<style type="text/css">
+	body {
+		background:#ffffff;
+	}
+</style>
+<script type="text/javascript" src="jeasyui/jquery.min.js"></script>
+<!--[if lt IE 8 ]><script src="js/json2.min.js"></script><![endif]-->
+<script type="text/javascript" src="jeasyui/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="jeasyui/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="js/logistics.js"></script>
+<script type="text/javascript">
+$(function(){
+	checkUserRole();;
+	$('#feedback').datagrid({
+		url: "../api/feedbacks",
+		method: "get",
+        onLoadSuccess: function(data){
+        	if(data.code != 0){
+        		$('#goods').datagrid('getPanel').text(data.description);
+        	}
+        }
+    });
+});
+
+function matterContent(value) {
+    return value ? value.replace("\n", "<br/>") : "";
+}
+
+function matterDate(dateTime){
+	var date = new Date(dateTime);
+	var y = date.getFullYear();
+	var m = date.getMonth()+1;
+	var d = date.getDate();
+	var h = date.getHours(); //hour 
+	var mi = date.getMinutes(); //minute 
+	var s = date.getSeconds(); //second 
+	return y + '-' + (m<10?('0'+m):m) + '-' + (d<10?('0'+d):d) + " " + (h<10?('0'+h):h) + ":" + (mi<10?('0'+mi):mi) + ":" + (s<10?('0'+s):s);
+}
+
+</script>
+</head>
+
+<body>
+<div id="contentWrap">
+	<div class="pageTitle"><span><a href="manager_feedback.html">意见反馈</a> &gt; <a href="manager_feedback.html">意见反馈</a></span></div>
+	<div class="pageColumn">
+		<div class="pageButton">
+		</div>
+		<!-- <div id="container" style="width: 100%; height: 400px;"></div> -->
+		<table id="feedback" title="意见反馈信息" style="width:99%;height:450px;" toolbar="#toolbar"
+            pagination="true" pageSize="20" rownumbers="true" fitColumns="true" singleSelect="true" >
+			<thead>
+				<tr>
+					<th field="mobile" width="10">手机号</th>
+					<th field="email" width="10">邮箱</th>
+					<th field="content" width="20" formatter="matterContent">反馈内容</th>
+					<th field="createTime" width="10" formatter="matterDate">反馈时间</th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+</div>
+</body>
+</html>

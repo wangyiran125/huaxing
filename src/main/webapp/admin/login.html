@@ -1,0 +1,29 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>登录页面</title>
+<link rel="stylesheet" type="text/css" href="css/login.css"/>
+
+<script type="text/javascript" src="js/jquery.js"></script>
+<!--[if lt IE 8 ]><script src="js/json2.min.js"></script><![endif]-->
+<script type="text/javascript" src="js/jquery.md5.js"></script>
+<script type="text/javascript" src="js/login.js"></script>
+</head>
+
+<body>
+<div id="wrap">
+	<div id="header"> </div>
+    <div id="content-wrap">
+    <div class="space"> </div>
+   	  <div class="content">
+   	  	<div id="fail_msg"></div>
+        <div class="field"><label>账　户：</label><input class="username" id="username" type="text" /></div>
+		<div class="field"><label>密　码：</label><input class="password" id="password" type="password" /><br /></div>
+        <div id="btn"><input type="button" id="login-btn" class="login-btn" onclick="login()"/></div>
+      </div>
+    </div>
+    <div id="footer"></div>
+</div>
+</body>
+</html>

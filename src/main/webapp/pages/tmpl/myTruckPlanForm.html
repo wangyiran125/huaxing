@@ -1,0 +1,92 @@
+<div>
+	<form method="post" id="edit-plan-form">
+	  <table class="send_table">
+	    <tr class="send_tr">
+	      <td class="send_title">车牌号:</td>
+	      <td class="send_selec"><select name="truckId" id="truckId" class="fron_select">
+	          <option value="6">1</option>
+	        </select></td>
+	    </tr>
+	    <tr class="send_tr">
+	      <td class="send_title">注意事项:</td>
+	      <td colspan="5"><div class="send_check">
+	          <input name="isBackTruck" type="checkbox" />
+	          &nbsp;&nbsp;回程车</div>
+	        <div class="send_check">
+	          <input name="isLongTerm" type="checkbox" />
+	          &nbsp;&nbsp;长期车</div></td>
+	    </tr>
+	    <tr class="send_tr">
+	      <td class="send_title">出发地:</td>
+	      <td class="send_selec"><select name="departure" class="fron_select">
+	          <option value="1">北京</option>
+	          <option value="2">天津</option>
+	          <option value="3">南京</option>
+	        </select></td>
+	    </tr>
+	    <tr class="send_tr">
+	      <td class="send_title">到达地:</td>
+	      <td class="send_selec"><select name="destination" class="fron_select">
+	          <option value="1">北京</option>
+	          <option value="2">天津</option>
+	          <option value="3">南京</option>
+	        </select></td>
+	    </tr>
+	    <tr class="send_tr">
+	      <td class="send_title">发车时间:</td>
+	      <td class="send_selec">
+	      <div class="send_input">
+	          <input name="departureTime" class="sent_ipt_3" type="text" />&nbsp;&nbsp;年&nbsp;&nbsp;<input class="sent_ipt_3" type="text" />&nbsp;&nbsp;月&nbsp;&nbsp;<input class="sent_ipt_3" type="text" />&nbsp;&nbsp;日
+	        </div></td>
+	    </tr>
+	     <tr class="send_tr">
+	      <td class="send_title">运价:</td>
+	      <td class="send_selec">
+	      <div class="send_input">
+	          <input name="shippingPrice" class="sent_ipt_1" type="text" />&nbsp;&nbsp;元/车
+	        </div></td>
+	    </tr>
+	    <tr class="send_tr">
+	      <td class="send_title">常用语:</td>
+	      <td colspan="5"><div class="send_check">
+	          <input type="checkbox" />
+	          &nbsp;求货源</div>
+	        <div class="send_check">
+	          <input type="checkbox" />
+	          &nbsp;有货速联系</div>
+	        <div class="send_check">
+	          <input type="checkbox" />
+	          &nbsp;运价好商量</div>
+	        <div class="send_check">
+	          <input type="checkbox" />
+	          &nbsp;价低急走</div>
+	          <div class="send_check">
+	          <input type="checkbox" />
+	          &nbsp;回程车</div>
+	          <div class="send_check">
+	          <input type="checkbox" />
+	          &nbsp;装车就走</div>
+	          <div class="send_check">
+	          <input type="checkbox" />
+	          &nbsp;求零担</div>
+	          <div class="send_check">
+	          <input type="checkbox" />
+	          &nbsp;晚上也可装车</div>
+	       </td>
+	    </tr>
+	     <tr style="height:20px;" class="send_tr">
+	       <td colspan="6"></td>
+	    </tr>
+	    <tr style="height:20px;" class="send_tr">
+	       <td colspan="6"><div style="border-top:1px solid #e8e8e8;"></div></td>
+	    </tr>
+	     <tr style="height:20px;" class="send_tr">
+	       <td colspan="6"></td>
+	    </tr>
+	    <tr class="send_tr">
+	      <td class="send_title" style="vertical-align:top;">备注说明:</td>
+	      <td colspan="6"><textarea name="remark" class="send_textare"  rows="4" cols="25" name="comment" id="input_comment" onfocus="this.value=''; this.onfocus=null;" >字数在十个字左右。</textarea></td>
+	    </tr>
+	  </table>
+	</form>
+</div>

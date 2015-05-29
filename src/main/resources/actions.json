@@ -1,0 +1,3 @@
+[
+{"action": "menu1", "operations": ["PermissionController.update()", "PermissionController.assignOperation(Long)", "PermissionController.delete()"]}
+]

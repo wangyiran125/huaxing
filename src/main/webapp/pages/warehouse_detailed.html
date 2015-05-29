@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>找仓库详情页面</title>
+<link href="css/ware.css" type="text/css" rel="stylesheet" />
+<link href="css/headfoot.css" type="text/css" rel="stylesheet" />
+<link href="css/main.css" type="text/css" rel="stylesheet" />
+<link href="css/theme.css" type="text/css" rel="stylesheet" />
+<style type="text/css">
+	.back{width:100%;text-align:right;}
+</style>
+<script type="text/javascript" src="js/jquery.js"></script>
+<!--[if lt IE 8 ]><script src="js/json2.min.js"></script><![endif]-->
+<script type="text/javascript" src="js/zezao.js" ></script>
+<script type="text/javascript" src="js/logistics.js"></script>
+<script type="text/javascript" src="js/dictHandler.js"></script>
+<script type="text/javascript">
+	
+	//加载仓库详情
+	function loadWarehouseInfo(){
+		var warehouseInfo = JSON.parse(sessionStorage.getItem($.getUrlParam('wid')));
+		$('#rent').html(warehouseInfo.rent == 0?'面议':(warehouseInfo.rent/100)+'元/平');
+		$('#type').html(parseToWarehouseType(warehouseInfo.type));
+		$('#residualCapacity').html(warehouseInfo.residualCapacity+'立方米');
+		$('#area').html(warehouseInfo.area+'平方米');
+		$('#volume').html(warehouseInfo.volume+'立方米');
+		var picture = warehouseInfo.picture
+		if(picture != null){
+			picture = picture.split(',');
+			for(var i=0;i<picture.length;i++){
+				$('#list-picture-box').append("<li> <img width='300px' src='"+picture[i]+"' /></li>");
+			}
+			picture = picture[0];
+		}else{
+			picture = 'images/invalid_pic2.png';
+		}
+		$('#picture').attr("src",picture);
+		var isCoolStore = warehouseInfo.isCoolStore
+		$('#isCoolStore').html(isCoolStore == 0?'暂无介绍':(warehouseInfo.isCoolStore == 1? '有':'无'));
+		$('#companyName').html(warehouseInfo.companyName);
+		$('#contactName').html(warehouseInfo.contactName);
+		$('#contactMobile').html(warehouseInfo.contactMobile);
+		$('#address').html(warehouseInfo.address);;
+	}
+    $(function(){
+        verifyAndDisplayUserInfo();
+        loadWarehouseInfo();
+    })    
+</script>
+</head>
+
+<body>
+<div class="wrapper"> 
+  <!--头部样式代码-->
+  <div class="page">
+  <!--HEADER_START-->
+    <div class="head_bj">
+      <div class="head">
+        <div class="head_top clear">
+          <div class="head_top_left">
+            <ol>
+              <li style="margin-left:0px;"><a href="###">北京</a></li>
+              <li><a href="###">加入收藏</a></li>
+              <li><a href="###">了解物流平台</a></li>
+              <li><a href="###">掌上物流</a></li>
+              <li>客服热线  4000  000  000</li>
+            </ol>
+          </div>
+          <div class="head_top_right">
+            <div class="head_right_user"><a href="###">用户一</a></div>
+            <div class="head_right_txt">您好，欢迎来到中国位置</div>
+            <div class="head_right_out"><a href="###">退出</a></div>
+          </div>
+        </div>
+        <div class="head_xia">
+          <div class="logo"><a href="###"><img src="images/logo.png" /></a></div>
+          <div class="head_nav">
+            <ul>
+              <li style="margin-left:0px;"><a href="index.html">首页</a></li>
+              <li><a href="send.html">我要发货</a></li>
+              <li class="active"><a href="ware.html">找仓库</a></li>
+              <li ><a href="###">找车</a></li>
+              <li><a href="aidercenter.html">个人中心</a></li>
+              <li><a href="Mywares.html">我的货物</a></li>
+              <li style=" margin-right:0px;"><a href="aider.html">意见反馈</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--HEADER_END-->
+    <!--中间部分样式代码-->
+    <div class="center_cont_bj">
+      <div class="center_cont" style="padding-top:10px;">
+        <div class="send_bj ">
+          <div class="send_bj_1"> 
+            <!--用车详情上半部分-->
+            <div class="detailde_bj">
+             <div class="send_list_right car_txt back">&nbsp;<a style="cursor: pointer;" onclick="javascript:history.go(-1)">&lt;&lt;返回 </a></div>
+              <div class="detailde_top">
+                <div class="detailde_left"><img id="picture" width="200px" /></div>
+                <div class="detailde_right">
+                  <p>
+                  	 <span style="display:inline-block; width:200px;">租金：<strong id="rent"></strong></span>
+                  	 <span style="display:inline-block; width:200px;">仓储类型：<span id="type">暂无</span></span>
+                  </p>
+                  <p>
+                  	<span style="display:inline-block; width:200px;">剩余容量：<span id="residualCapacity">暂无</span></span>
+                  	<span style="display:inline-block; width:200px;">仓库面积：<span id="area"></span></span>
+                  </p>
+                  <p> 
+                  	<span style="display:inline-block; width:200px;">仓库体积：<span id="volume">1000立方米</span></span>
+                  	<span style="display:inline-block; width:200px;">有无冷库：<span id="isCoolStore"></span></span>
+                  </p>
+                  <p>
+                  <span style="display:inline-block; width:200px;">发布者：<span id="companyName"></span></span>
+                  <span style="display:inline-block; width:200px;">联系人：<span id="contactName"></span></span>
+                  </p>
+                  <p>
+                  <span style="display:inline-block;">地址：<span id="address"></span></span>
+                  </p>
+                  <p>
+                  <span style="display:inline-block; width:200px;">联系电话：<span id="contactMobile"></span></span>
+                  </p>
+                  
+                </div>
+              </div>
+            </div>
+            <!--用车详情上半部分-->
+            
+            <div class="detailde_xia">
+              <h4>图文详情</h4>
+              <ul id="list-picture-box">
+               <!--  <li> <img src="images/10.jpg" /></li>
+                <li style="margin-right:0px;"> <a href="###"><img src="images/10.jpg" /></a></li>
+                <li> <a href="###"><img src="images/10.jpg" /></a></li> -->
+              </ul>
+              <p>说明：<span>暂无详细说明</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!--尾部样式代码-->
+  <!--FOOTER_START-->
+  <div class="copyright">
+    <div class="bottom_bj">
+      <div class="bottom">
+        <ul class="clear">
+          <li style="border-right:1px solid #fff;"><a href="###">中国位置物流平台简介</a></li>
+          <li><a href="###">联系我们</a></li>
+        </ul>
+        <div class="bottom_txt">版权所有©2014北斗导航位置服务(北京)有限公司-京ICP备05085635号Copyright © 2014 ChinaLbs International BV.All rights reserved.</div>
+      </div>
+    </div>
+  </div>
+  <!--FOOTER_END-->
+</div>
+<div class="box_logoIn detailed_LogoIn" id="box_logoIn">
+  <div id="close"><img src="images/pic_14.png" /></div>
+  <div class="mark_title">选择货物</div>
+  <div class="detailed_center">
+    <ul>
+      <li>
+        <div class="detai_list_1">设备</div>
+        <div class="detai_list_2">38吨</div>
+        <div class="detai_list_3">北京→天津</div>
+        <div class="detai_list_4">
+          <input type="checkbox" />
+          &nbsp;&nbsp;用货</div>
+      </li>
+      <li>
+        <div class="detai_list_1">设备</div>
+        <div class="detai_list_2">38吨</div>
+        <div class="detai_list_3">北京→天津</div>
+        <div class="detai_list_4">
+          <input type="checkbox" />
+          &nbsp;&nbsp;用货</div>
+      </li>
+      <li>
+        <div class="detai_list_1">设备</div>
+        <div class="detai_list_2">38吨</div>
+        <div class="detai_list_3">北京→天津</div>
+        <div class="detai_list_4">
+          <input type="checkbox" />
+          &nbsp;&nbsp;用货</div>
+      </li>
+      <li>
+        <div class="detai_list_1">设备</div>
+        <div class="detai_list_2">38吨</div>
+        <div class="detai_list_3">北京→天津</div>
+        <div class="detai_list_4">
+          <input type="checkbox" />
+          &nbsp;&nbsp;用货</div>
+      </li>
+    </ul>
+  </div>
+  <div class="mywar_delete" style="margin-left:80px;"><a href="javascript:void(0);">取消</a></div>
+  <div class="mywar_submit"><a href="javascript:void(0);">确认</a></div>
+</div>
+</body>
+</html>

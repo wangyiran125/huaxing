@@ -1,0 +1,273 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>车主管理</title>
+
+<link rel="stylesheet" type="text/css" href="css/common.css"/>
+<link rel="stylesheet" type="text/css" href="jeasyui/themes/gray/easyui.css"/>
+<link rel="stylesheet" type="text/css" href="jeasyui/themes/icon.css"/>
+
+<style type="text/css">
+	body {
+		background:#ffffff;
+	}
+	#gdxx,.isactivate_float{float:left;}
+	#gdxx{margin-left:20px;}
+</style>
+<script type="text/javascript" src="jeasyui/jquery.min.js"></script>
+<!--[if lt IE 8 ]><script src="js/json2.min.js"></script><![endif]-->
+<script type="text/javascript" src="jeasyui/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="jeasyui/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="js/logistics.js"></script>
+<script type="text/javascript">
+	var rowData = null;
+	$(function(){
+		checkUserRole();
+		$("#truckowners").datagrid({
+			url: "../api/users?type=4",
+			method: "get",
+			onClickRow: function(){
+				rowData = $('#truckowners').datagrid('getSelected');
+	        	$('#truckowners').datagrid('clearSelections')
+	        },
+	        onLoadSuccess: function(data){
+	        	if(data.code != 0){
+	        		$('#truckowners').datagrid('getPanel').text(data.description);
+	        	}
+	        }
+	    });
+		//optTruckOwner({vipLevel: 2, userId: 0});
+		//openDialog($('#dlg-driver'), '车主更多信息');
+		$("#serch").click(function(){
+			var url = "../api/users?type=4";
+			var name = encodeURIComponent($("#name").val());
+			var phone = $("#phone").val();
+			url += "&name=" + name + "&phone=" + phone;
+			$('#truckowners').datagrid({
+				url: url,
+				method: "get"
+	        });
+		});
+		
+		$("#")
+	});
+	
+	function matterOperator(value, row,rowIndex) {
+		var more = "";
+		switch(row.isDeleted){
+			case 0:
+				more = "<div class='isactivate forbidden isactivate_float' onclick='isactivate("+value+")' title='禁用该用户'>禁用</div>";
+				break;
+			case -1:
+				more = "<div class='isactivate activate isactivate_float' onclick='isactivate("+value+")' title='激活该用户'>激活</div>";
+				break;
+		}
+		more += "<div id='gdxx'><a href='javascript:void(0);' onclick='optTruckOwner(" + rowIndex + ")'>更多信息</a></div>";
+		return more;
+	}
+	
+	function matterVipLevel(value){
+		var levelStr = "";
+		switch(value){
+		case 1:
+			levelStr = "金卡用户";
+			break;
+		case 2:
+			levelStr = "银卡用户";
+			break;
+		case 0:
+			levelStr = "普通用户";
+			break;
+		default:
+			break;
+		}
+		return levelStr;
+	}
+	//弹出dialog，如果位置显示不全，则移动
+	function openDialog(dialog, title){
+		if(dialog.hasClass("easyui-dialog")){
+			dialog.dialog('open').dialog('setTitle', title);
+			if(dialog.parent().next().css("top").indexOf("-") >= 0){
+				dialog.parent().next().animate({"top": 10 + "px"},100);
+				dialog.parent().animate({"top": 10 + "px"},100);
+			}
+		}
+	}
+
+	function optTruckOwner(){
+		openDialog($('#dlg-driver'), '车主更多信息');
+		setTimeout(function(){
+			$("input[name='vipLevel']").each(function(){
+				if($(this).val() == rowData.vipLevel){
+					$(this).attr("checked", "checked");
+				}
+			});
+			$('#drivers').datagrid({
+				url: "../api/drivers?userId=" + rowData.userId,
+				method: "get",
+				onClickRow: function(){
+		        	$('#drivers').datagrid('clearSelections');
+		        },
+		        onLoadSuccess: function(data){
+		        	if(data.code != 0){
+		        		$('#drivers').datagrid('getPanel').text(data.description);
+		        	}
+		        }
+		    });
+		}, 200);
+	}
+	function saveVipLevel(){
+		var level = $("input[name='vipLevel']:checked").val();
+		var userVipLevel = {
+				userId: rowData.userId,
+				vipLevel: level
+		}
+		$.ajax({
+	        url: '../api/users/truckowner/viplevel',
+	        contentType: 'application/json',
+	        data: JSON.stringify(userVipLevel),
+	        type: 'PUT',
+	        async: false,
+	        success: function(json){
+	        	if(json.code == 0){
+	        		alert("保存成功");
+	        		$('#truckowners').datagrid('reload');
+	        	}else{
+	        		alert(json.description);
+	        	}
+	        },
+	        error: function(json){
+	            alert("服务器异常，请稍后尝试！")
+	        }
+	    });
+	}
+	function matterDriverUsername(value){
+		return value.username;
+	}
+	function matterDriverName(value, row){
+		return row.driver.name;
+	}
+	function matterDriverPhone(value, row){
+		return row.driver.phone;
+	}
+	function matterDriverMobile(value, row){
+		return row.driver.mobile;
+	}
+	function matterDriverTruckLabel(value, row){
+		return row.driver.truckLabel;
+	}
+	function matterOperator4Driver(value, row) {
+		var more = "<a href='javascript:void(0);' onclick='deleteDriver(" + row.driver.userId + ")'>删除</a>";
+		return more;
+	}
+
+	//删除司机
+	function deleteDriver(userId){
+		$('#dlg').dialog('open').dialog('setTitle', '');
+		$("#isdelete").click(function(){
+			$('#dlg').dialog('close');
+			$.ajax({
+				type:'delete',
+				url:'../api/drivers/'+userId+"?t="+new Date().getTime(),
+				success:function(json){
+					if(json.code == 0){
+						$("#drivers").datagrid();
+					}else{
+						alert(json.description);
+					}
+				},
+				error:function(){
+					
+				}
+			}) 
+		})
+	}
+	
+	//禁用或激活用户
+	function isactivate(userId){
+		$.ajax({
+			type:'delete',
+			url:'../api/users/'+userId,
+			success:function(json){
+				if(json.code == 0){
+					$('#truckowners').datagrid();
+				}else{
+					alert(json.description);
+				}
+			},
+			error:function(){
+				alert("服务器异常，请稍后操作");
+			}
+		})
+	}
+</script>
+</head>
+
+<body>
+<div id="contentWrap">
+	<div class="pageTitle"><span><a href="manager_admin.html">人员管理</a> &gt; <a href="manager_truckowner.html">车主管理</a></span></div>
+	<div class="pageColumn">
+		<div class="pageButton">
+			姓名：<input type="text" id="name"/>
+			手机号：<input type="text" id="phone"/>
+			<button class="btn" id="serch">搜索</button>
+		</div>
+		<table id="truckowners" title="车主信息" style="width:99%;height:450px;" 
+            pagination="true" pageSize="20" rownumbers="true" fitColumns="true" singleSelect="true" >
+			<thead>
+				<tr>
+					<th field="username" width="20">用户名</th>
+					<th field="name" width="20">姓名</th>
+					<th field="phone" width="20">手机号</th>
+					<th field="mobile" width="20">电话</th>
+					<th field="email" width="20">邮箱</th>
+					<th field="qq" width="20">QQ</th>
+					<th field="vipLevel" width="20" formatter="matterVipLevel">用户等级</th>
+					<th field="isDeleted" width="15" formatter="matterStatus">状态</th>
+					<th field="userId" width="20" formatter="matterOperator">操作</th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+</div>
+<div id="dlg-driver" class="easyui-dialog"
+     style="width:800px;height:450px;padding:10px 20px"
+     closed="true" buttons="#dlg-buttons-admin">
+    <div style="margin-bottom: 10px;">
+    	<input type="radio" name="vipLevel" id="gold" value="1"/><label for="gold">金卡用户</label>
+    	<input type="radio" name="vipLevel" id="silver" value="2"/><label for="silver">银卡用户</label>
+    	<input type="radio" name="vipLevel" id="normal" value="0"/><label for="normal">普通用户</label>
+    	<button class="btn" onclick="saveVipLevel()">保存</button>
+    </div>
+    <table id="drivers" title="司机信息" style="width:750px;height:300px;" 
+            pagination="true" pageSize="10" rownumbers="true" fitColumns="true" singleSelect="true" >
+			<thead>
+				<tr>
+					<th field="logisticsUser" width="16%" formatter="matterDriverUsername">用户名</th>
+					<th field="driver.name" width="16%" formatter="matterDriverName">姓名</th>
+					<th field="driver.phone" width="16%" formatter="matterDriverPhone">手机号</th>
+					<th field="driver.mobile" width="16%"  formatter="matterDriverMobile">电话</th>
+					<th field="licensePlateNumber" width="16%">车牌号</th>
+					<th field="driver.truckLabel" width="16%"  formatter="matterDriverTruckLabel">车标</th>
+					<th field="driver.userId" width="10%" formatter="matterOperator4Driver">操作</th>
+					<th></th>
+				</tr>
+			</thead>
+		</table>
+</div>
+
+<div id="dlg-buttons-admin">
+    <button class="btn" onclick="javascript:$('#dlg-driver').dialog('close')">确定</button>
+</div>
+<div id="dlg" class="easyui-dialog" data-options="modal:true" style="width:200px;height:120px;padding:10px 20px 0;position: relative" closed="true">
+	<center>
+		<div style="margin-bottom:10px;">确定要删除吗？</div>
+		<div id="dlg-buttons">
+			<a id="isdelete" href="#" class="easyui-linkbutton" iconCls="icon-ok">确定</a>
+			<a href="#" class="easyui-linkbutton" iconCls="icon-cancel" onclick="$('#dlg').dialog('close')">取消</a>
+		</div>
+	</center>
+</div>
+</body>
+</html>

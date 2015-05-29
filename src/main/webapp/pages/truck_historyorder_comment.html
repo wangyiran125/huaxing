@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>我的评价</title>
+<link href="css/ware.css" type="text/css" rel="stylesheet" />
+<link href="css/headfoot.css" type="text/css" rel="stylesheet" />
+<link href="css/main.css" type="text/css" rel="stylesheet" />
+<link href="css/theme.css" type="text/css" rel="stylesheet" />
+<script type="text/javascript" src="js/jquery.js"></script>
+<!--[if lt IE 8 ]><script src="js/json2.min.js"></script><![endif]-->
+<script type="text/javascript" src="js/logistics.js"></script>
+
+<script>
+  var conf = {};
+
+  function loadHistoryOrderItem(id){
+    //验证评价字数
+    var comment=$("#input_comment").val();
+    if (comment.length>9) {
+      $.ajax({
+        url: '../api/orders/'+id,
+        success: function(json){
+          if(json.code == 0){
+            var item = json.payload;
+            // console.log(item);
+
+            $('\
+              <div class="translation_top">\
+                <div class="translation_top_left">\
+                  <h2> <a href="###"><img src="images/pic_3.png" /></a> &nbsp;'+item.goods.departure+' &nbsp; <span>→</span> &nbsp; <a href="###"><img src="images/pic_3.png" /></a> &nbsp;'+item.goods.destination+' </h2>\
+                  <div class="cont_right_list">\
+                    <ol>\
+                      <li style="padding-left:0px;">货物类型ID：'+item.goods.goodsType+'</li>\
+                      <li>'+item.goods.weight+'吨</li>\
+                      <li>重货</li>\
+                      <li>体积：'+item.goods.volume+'</li>\
+                      <li>配货类型ID：'+item.goods.shippingType+'</li>\
+                    </ol>\
+                  </div>\
+                </div>\
+                <div class="translation_top_right"> 货物信息 </div>\
+              </div>\
+              <div class="translation_top">\
+                <div class="translation_top_left">\
+                  <h2> <a href="###"><img src="images/pic_3.png" /></a> &nbsp;北京市 &nbsp; <span>→</span> &nbsp; <a href="###"><img src="images/pic_3.png" /></a> &nbsp;北京市 </h2>\
+                  <div class="cont_right_list">\
+                    <ol>\
+                      <li style="padding-left:0px;">京AT9234</li>\
+                      <li>货车</li>\
+                      <li>高栏</li>\
+                      <li>长6.8米</li>\
+                      <li>载重10吨</li>\
+                    </ol>\
+                  </div>\
+                </div>\
+                <div class="translation_top_right"> 车主信息 </div>\
+              </div>\
+              ').appendTo('#item-box');
+
+        }else{
+            logisticsError(json.description);
+        }
+      },
+        error: function(jqXHR, textStatus, errorThrown){
+            ajaxError(jqXHR, textStatus, errorThrown);
+        }
+    });
+    } else{
+      return;
+    };
+    
+  }
+
+  $(function(){
+    verifyAndDisplayUserInfo();
+
+    conf.id = location.search.replace('?id=','');//地址栏里的货物的id值，是字符串
+    conf.successLocation = './truck_aidercenter.html';
+    conf.sendBtn = '#send_submit';
+    conf.commentBox = '#input_comment';
+    conf.commentForm = '#comment-form';
+
+    loadHistoryOrderItem(conf.id);
+
+  });
+</script>
+<script type="text/javascript" src="js/scoreComment.js"></script>
+</head>
+
+<body>
+<div class="wrapper">
+<!--头部样式代码-->
+<div class="page">
+  <!--HEADER_START-->
+  <div class="head_bj">
+    <div class="head">
+      <div class="head_top clear">
+        <div class="head_top_left">
+          <ol>
+            <li style="margin-left:0px;"><a href="###">北京</a></li>
+            <li><a href="###">加入收藏</a></li>
+            <li><a href="###">了解物流平台</a></li>
+            <li><a href="###">掌上物流</a></li>
+            <li>客服热线  4000  000  000</li>
+          </ol>
+        </div>
+        <div class="head_top_right">
+          <div class="head_right_user"><a id="view_username" href="###"></a></div>
+          <div class="head_right_txt">您好，欢迎来到中国位置</div>
+          <div class="head_right_out"><a href="javascript:void(0)" onclick="logout()">退出</a></div>
+        </div>
+      </div>
+      <div class="head_xia">
+        <div class="logo"><a href="###"><img src="images/logo.png" /></a></div>
+        <div class="head_nav">
+          <ul>
+            <li style="margin-left:0px;" ><a href="./truck_index.html">首页</a></li>
+            <li ><a href="./truck_search_goods.html">我要找货</a></li>
+            <li ><a href="./truck_addplan.html">发布车源</a></li>
+            <li ><a href="./truck_my_goods.html">我的抢单</a></li>
+            <li><a href="./truck_myplan.html">我的车源</a></li>
+            <li><a href="###">车辆监控</a></li>
+            <li class="active"><a href="./truck_aidercenter.html">个人中心</a></li>
+            <li style=" margin-right:0px;"><a href="aider.html">意见反馈</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+<!--HEADER_END-->
+  <!--中间部分样式代码-->
+  <div class="center_cont_bj">
+    <div class="center_cont " style="padding-top:10px;">
+      <div class="send_bj">
+        <div class="send_bj_1">
+          <div class="send_list">
+            <div class="car_list_left">
+              <div class="send_list_left"><img src="images/pic_1.png" /></div>
+              <div  class="send_list_right send_list0ne">订单评价</div>
+            </div>
+            <div class="car_list_right">
+              <div  class="send_list_right car_txt">&nbsp;<a href="aidercenter.html">&nbsp;返回历史订单 </a></div>
+            </div>
+          </div>
+          <div class="translation_center">
+            <div id="item-box"></div>
+
+            <div class="translation_xia">
+              <div class="translation_xing">
+                 <div class="translation_xing_left">评价</div>
+                  <!-- <ul>
+                      <li class=""></li>
+                      <li></li>
+                      <li></li>
+                      <li></li>
+                      <li></li>
+                  </ul> -->
+                  <form id="comment-form">
+                    <label><input type="radio" value="a" name="comment"/>好评</label>
+                    <label><input type="radio" value="b" name="comment"/>中评</label>
+                    <label><input type="radio" value="c" name="comment"/>差评</label>
+                    <label id="comment-form_promt" class="login_lable"></label>
+                  </form>
+              </div>
+              <div class="translation_xia_bottom clear">
+                <textarea id="input_comment" class="xia_textare"  onfocus="this.value=''; this.onfocus=null;" name="comment" cols="25" rows="2" placeholder="字数不得少于十个字左右。"></textarea>
+            </div>
+            </div>
+            <div class="send_submit" id="send_submit"> 确认添加 </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!--尾部样式代码-->
+<!--FOOTER_START-->
+<div id="bottom-bj-wrap"></div>
+<!--FOOTER_END-->
+</div>
+</body>
+</html>

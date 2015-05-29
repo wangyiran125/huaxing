@@ -1,0 +1,85 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>登录页面</title>
+<link href="css/regist.css" type="text/css" rel="stylesheet" />
+<link href="css/headfoot.css" type="text/css" rel="stylesheet" />
+<link href="css/main.css" type="text/css" rel="stylesheet" />
+<link href="css/theme.css" type="text/css" rel="stylesheet" />
+<script type="text/javascript" src="js/jquery.js"></script>
+<script type="text/javascript" src="js/jquery.md5.js"></script>
+<!--[if lt IE 8 ]><script src="js/json2.min.js"></script><![endif]-->
+<script type="text/javascript" src="js/logistics.js"></script>
+<script type="text/javascript">
+</script>
+</head>
+
+<body>
+<div class="regist_box">
+    <div class="regist_top_bj">
+        <div class="regist_top"><img src="images/logo_huanyu.png" /></div>
+    </div>
+     <div class="regist_banner_bj" >
+         <div class="regist_banner">
+             <div class="regist_center">
+                   <div class="regist_comin">
+                           <div class="regist_main_top">
+                            <h3>用户登录</h3>
+                           
+                           </div>
+                             <div class="regist_main_bottom">
+                                  <div class="login_anniu">
+                                     <div class="regst_main_txt">用户名</div>
+                                     <div><input id="username" class="login_input" type="text" onmouseover="this.style.border='solid 1px #6e783c'" onmouseout="this.style.border='solid 1px #e2e2e2'" /></div>
+                                  </div>
+                                  <div class="login_anniu">
+                                     <div class="regst_main_txt">密码</div>
+                                     <div><input id="password" class="login_input" type="password" onmouseover="this.style.border='solid 1px #6e783c'" onmouseout="this.style.border='solid 1px #e2e2e2'" /></div>
+                                  </div>
+                                  <div class="login_anniu">
+                                     <div class="verificationcode"><input id="vcode" class="login_input" type="text" onmouseover="this.style.border='solid 1px #6e783c'" placeholder="验证码" onmouseout="this.style.border='solid 1px #e2e2e2'" /></div>
+                                  	 <div class="verificationcode" style="padding:7px;"><img src="../api/ajaxcontrol/verifycode"/></div>
+                                  	  <div class="verificationcode" style="font-size:13px;color:#666;"><a>看不清<br/>换一张</a></div>
+                                  </div>
+                                  <div class="login_anniu">
+                                   <div class="regst_main_txt">
+                                   		<input type="checkbox" id="rname_checkbox"/>&nbsp;&nbsp;&nbsp;记住用户名
+                                   		<span style="margin-left:160px;"><a style="color:#666;" href="password_find.html">忘记密码？</a></span>
+                                   </div>
+                                  </div>
+                                   <div  class="regist_button">
+                                   <a class="regist_login" href="javascript:void(0);" onclick="login()"><span id="login">登录</span></a>
+                                   </div>
+                                   <style>
+                                   .regist_login:hover, .regist_submint:hover {box-shadow: 0 0 2px #999;}
+                                   </style>
+                            </div>
+                   </div>        
+             </div>
+         </div>
+    <div class="regist_bon">
+         <a href="javascript:void(0);"><img src="images/index_2.png"/></a>
+    </div>
+         <!--尾部样式代码-->
+         <!--FOOTER_START-->
+         <div id="bottom-bj-wrap">
+         </div>
+         <!--FOOTER_END-->
+</div></div>
+<script type="text/javascript">
+  var ua = window.navigator.userAgent.toLowerCase();
+  if(ua.indexOf('msie 8') != -1 || ua.indexOf('msie 7') != -1 || ua.indexOf('msie 6') != -1){
+    logisticsAlert("您的IE浏览器版本低于IE9，请升级以获取更好的使用体验！");
+  }
+    //获取用户名cookie
+    var unamecookie=getCookie("uname");
+    if(unamecookie!=null){
+      $("#username").val(unamecookie);
+      $("#rname_checkbox").attr("checked",true);
+    }else{
+      $("#rname_checkbox").attr("checked",false);
+    }
+</script>
+</body>
+</html>

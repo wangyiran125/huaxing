@@ -1,0 +1,77 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>选择角色</title>
+    <link href="css/regist.css" type="text/css" rel="stylesheet" />
+    <link href="css/main.css" type="text/css" rel="stylesheet" />
+    <link href="css/headfoot.css" type="text/css" rel="stylesheet" />
+    <link href="css/theme.css" type="text/css" rel="stylesheet" />
+    <style type="text/css">
+    	.box-center{border-radius:8px 8px 8px 8px;width:1000px;height:340px;background-color:white;margin-top:-170px;margin-left:-500px;top:50%;left:50%;position:absolute;}
+    	.noborder{border:none;width:100%;text-align:left;}
+    	.container{width:90%;margin:12px auto;}
+    	#choose_role{width:95%;height:180px;margin:auto;}
+    	#choose_role #chezhu,#huozhu{cursor:pointer;width:45%;height:100%;border-radius:10px 10px 10px 10px;float:left;background-color:#3F9FDB;}
+    	#choose_role #huozhu{margin-left:10%;}
+    	.imgpos{margin-top:18%;margin-left:42%;}
+    	.headline{color:white;margin-top:30px;width:100%;text-align:center;}
+    </style>
+    <script type="text/javascript" src="js/jquery.js"></script>
+    <!--[if lt IE 8 ]><script src="js/json2.min.js"></script><![endif]-->
+    <script type="text/javascript" src="js/logistics.js"></script>
+    <script type="text/javascript">
+    	$(function(){
+    		$("#chezhu").mouseover(function(){
+    			$(this).css("background","#87CEFF");
+    		}).mouseout(function(){
+    			$(this).css("background","#3F9FDB");
+    		}).click(function(){
+    			location.href="truck_register.html";
+    		})
+    		$("#huozhu").mouseover(function(){
+    			$(this).css("background","#FF8C00");
+    		}).mouseout(function(){
+    			$(this).css("background","#3F9FDB");
+    		}).click(function(){
+    			location.href="goods_register.html";
+    		})
+    	})
+    </script>
+</head>
+
+<body>
+<div class="regist_box">
+    <div class="regist_top_bj">
+        <div class="regist_top"><img src="images/logo_huanyu.png" /></div>
+    </div>
+    <div class="login_banner_bj" style="height:900px;">
+        <div class="regist_banner" >
+            <div class="box-center">
+                <div class="login_main container">
+                    <div class="login_main_top noborder">
+                        <h3 style="color:#3F9FDB">请选择您的用户类型</h3>
+                    </div>
+					<div id="choose_role">
+						<div id="chezhu">
+							<div class="imgpos"><img src="images/center_nav_4.png"></img></div>
+							<div class="headline">我是车主</div>
+						</div>
+						<div id="huozhu">
+							<div class="imgpos"><img src="images/center_nav_3.png"></img></div>
+							<div class="headline">我是货主或仓库主</div>
+						</div>
+					</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--尾部样式代码-->
+    <!--FOOTER_START-->
+    <div id="bottom-bj-wrap">
+    </div>
+    <!--FOOTER_END-->
+</div>
+</body>
+</html>
+

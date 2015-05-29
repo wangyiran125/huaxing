@@ -1,0 +1,35 @@
+﻿@import "common.css";
+
+#wrap{ width:100%;  background:#198bc9}
+#header{ height:78px; background:url(../images/index-header-bg.gif) repeat-x;}
+.logo{ width:362px; height:51px; background:url(../images/logo.png) no-repeat;}
+#usermsg{margin: 15px 10px 0 0; color: #ffffff;}
+#usermsg a{color: #ffffff;}
+.logout{ width:23px; height:24px; background:url(../images/index-logout.png); margin-top:14px;}
+
+.subnav{ height:27px; background:url(../images/index-subnav-bg.gif)}
+.subnav .subnavLeft{ width:17px; height:27px; background:url(../images/index-subnav-left.gif)}
+.subnav .subnavRight{ width:17px; height:27px; background:url(../images/index-subnav-right.gif)}
+
+.menu{ width:168px; height:495px; background:#e6f4fa; color:#075587; margin-left:5px;}
+.menu ul{ width:168px;}
+.menu ul li{ width:168px; background: url(../images/index-menu-bg.gif) no-repeat; text-align:center; cursor: pointer;}
+.menu ul li a{ height:26px; line-height:26px; color:#075587}
+.menu ul li a:hover{ height:26px; line-height:26px; color:#075587; text-decoration:none; margin-left: -10px;}
+.menu .subMenuTitle{ background:url(../images/index-menu-title.gif); text-align:center; height:27px; line-height:26px; color:#fff}
+.menu ul li ul{ width:168px;}
+.menu ul li ul li{ background: url(../images/index-submenu-bg.gif); text-align: left;}
+.menu ul li ul li a{margin-left: 65px;}
+.menu ul li ul li a:hover{ height:26px; line-height:26px; color:#075587; text-decoration:none; margin-left:60px;}
+
+
+
+.sidebar{ width:5px; height:500px;}
+.sidebar .sbtn{ width:5px; height:39px; background:url(../images/sidebar-on.gif); margin-top:200px;}
+.sidebar .sbtn:hover{ background-position:0 -39px;}
+.page{height:500px;}
+.page iframe{ margin:0 auto;}
+#content .space{ height:5px; font-size:0px; background:#198bc9}
+#footer{ width:100%; height:26px; line-height:26px; background:url(../images/index-footer-bg.gif);}
+
+#uinfo_form input{margin-bottom: 10px;}

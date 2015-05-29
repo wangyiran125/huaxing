@@ -1,0 +1,23 @@
+@charset "utf-8";
+/* CSS Document */
+
+.center_subnav_bj{ width:100%;  clear:both; overflow:hidden; background:#dedede;}
+
+/*.center_subnav{ background:url(../images/1.png) center center no-repeat; }*/
+.subnav{height:494px; width:100%; margin: 0px auto 0;position: relative; overflow:hidden;}
+
+.subnav ul{ position: absolute;height:494px; }
+.subnav ul li{  float:left; height:494px; width:100%; overflow:hidden; position:relative;}
+.subnav ul img { float: left; height:494px; width:100%;}
+
+.preNext {width:45px; height:100px; position:absolute; top:200px; background:url("../images/arrow.png") no-repeat 0 0; cursor:pointer;}
+.pre {left:0;}
+.next {right:17px; background-position:right top;}
+
+.cont_top{ height:275px; padding-top:65px; }
+.cont_list ul li {float:left; height:218px;width:145px; margin-right:210px;}
+.list_img{ background:url(../images/center_nav_1.png) no-repeat; width:100px; height:100px;padding-top:51px; padding-left:47px;   position: relative;transition: all 0.5s ease-in-out 0s; }
+.list_img:hover{ transform: scale(1.1);}
+.list_txt{ font-size:25px; font-weight:bold; text-align: center; line-height:70px;}
+.list_txt a{ color:#000;} 
+.list_txt a:hover{ color:#6e783c;}

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>找仓库</title>
+<link href="css/ware.css" type="text/css" rel="stylesheet" />
+<link href="css/headfoot.css" type="text/css" rel="stylesheet" />
+<link href="css/main.css" type="text/css" rel="stylesheet" />
+<link href="css/theme.css" type="text/css" rel="stylesheet" />
+<script type="text/javascript" src="js/jquery.js"></script>
+<!--[if lt IE 8 ]><script src="js/json2.min.js"></script><![endif]-->
+<script type="text/javascript" src="js/index.js" ></script>    
+<script type="text/javascript" src="js/logistics.js"></script>
+<script type="text/javascript" src="js/dictHandler.js"></script>
+<script type="text/javascript" src="js/pagination.js"></script>
+<script type="text/javascript" src="js/search.js"></script>
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=YZC6KcQWrpeArpblSwXOQyuG"></script>
+<script type="text/javascript" src="js/mapJustShow.js"></script> 
+
+<script type="text/javascript">
+    $(function(){
+        verifyAndDisplayUserInfo();
+        viewWarehouseType();
+        viewWarehouseArea();
+        viewWarehouseVolume();
+        loadWarehouses(0,PAGE_SIZE);
+        timerNameSpace.timer = setInterval(function(){
+        	loadWarehouses(0,PAGE_SIZE);
+        },INTERVAL);
+        document.onclick = function(){
+        	clearInterval(timerNameSpace.timer);
+        	timerNameSpace.timer = setInterval(function(){
+        		loadWarehouses(0,PAGE_SIZE);
+            },INTERVAL);
+        };
+
+        $('#map-mode').click(function(){
+          setTimeout(function(){//设置时间差为了地图挪到标记所处的位置
+            mapNameSpace.showLocations();
+          },100);
+          
+        });
+    })    
+</script>
+
+</head>
+
+<body>
+<div class="wrapper">
+  <div class="page">
+<!--头部样式代码-->
+<!--HEADER_START-->
+<div class="head_bj">
+  <div class="head">
+    <div class="head_top clear">
+      <div class="head_top_left">
+        <ol>
+          <li style="margin-left:0px;"><a href="###">北京</a></li>
+          <li><a href="###">加入收藏</a></li>
+          <li><a href="###">了解物流平台</a></li>
+          <li><a href="###">掌上物流</a></li>
+          <li>客服热线  4000  000  000</li>
+        </ol>
+      </div>
+      <div class="head_top_right">
+        <div class="head_right_user"><a id="view_username" href="###"></a></div>
+        <div class="head_right_txt">您好，欢迎来到中国位置</div>
+        <div class="head_right_out"><a href="javascript:void(0)" onclick="logout()">退出</a></div>
+      </div>
+    </div>
+    <div class="head_xia">
+      <div class="logo"><a href="###"><img src="images/logo.png" /></a></div>
+      <div class="head_nav">
+        <ul>
+          <li style="margin-left:0px;"><a href="goods_index.html">首页</a></li>
+          <li><a href="goods_add.html">我要发货</a></li>
+          <li class="active"><a href="###">找仓库</a></li>
+          <li><a href="goods_search_truck.html">找车</a></li>
+          <li><a href="goods_aidercenter.html">个人中心</a></li>
+          <li><a href="goods_list.html">我的货物</a></li>
+          <li style=" margin-right:0px;"><a href="goods_feedback.html">意见反馈</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+<!--HEADER_END-->
+<!--中间部分样式代码-->
+<div class="center_cont_bj">
+  <div class="center_cont" style="padding-top:10px;"> 
+    <!--选择列表样式-->
+    <div class="send_bj">
+      <div class="send_bj_1">
+        <div class="b_choose">
+          <div class="center_choose">
+            <div class="choose_min">仓库类型:</div>
+            <ul id="warehouseType">
+              <li onclick="updWarehouseTypeCss(this)" value="0" class="choose_a choose_active">不限</li>
+            </ul>
+          </div>
+          <div class="center_choose">
+            <div class="choose_min">仓库面积:</div>
+            <ul id="warehouseArea">
+              <li onclick="updWarehouseAreaCss(this)" value="0" class="choose_a choose_active">不限</li>
+            </ul>
+          </div>
+          <div class="center_choose">
+            <div class="choose_min">仓库容量:</div>
+            <ul id="warehouseVolume">
+              <li onclick="updWarehouseVolumeCss(this)" value="0" class="choose_a choose_active">不限</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!--列表部分内容-->
+    <div class="send_bj " style=" margin-top:9px;">
+      <div class="send_bj_1">
+        <div class="send_list">
+          <ul>
+            <li class="send_active top_1">
+              <div class="send_list_left"><img src="images/pic_8.png" /></div>
+              <div class="send_list_right">列表模式</div>
+            </li>
+            <li class="top_2" id="map-mode">
+              <div class="send_list_left"><img src="images/pic_9.png" /></div>
+              <div class="send_list_right">地图模式</div>
+            </li>
+          </ul>
+        </div>
+        
+        <div class="content_list" style="display:block;"> 
+          <!--第一页-->
+          <div class="content_box">
+            <ul id="warehouse-list-box">
+             <!--  <li>
+                <div class="content_list_left"><img src="images/2.png" /></div>
+                <div class="content_list_right">
+                  <h2>北京 海淀  →     河北 保定</h2>
+                  <div class="cont_right_list">
+                    <ol>
+                      <li style="padding-left:0px;">设备</li>
+                      <li>38吨</li>
+                      <li>重货</li>
+                      <li>体积不详</li>
+                      <li>整车配货</li>
+                    </ol>
+                  </div>
+                  <p> <a style="padding-left:0px;" href="###">发布者：北京立方货物公司</a> <a href="###">联系人：霍先生 </a> <a href="###">信息有效期：2015-04-02</a> </p>
+                  <p>说明：求5辆13米高栏车源，价高急走</p>
+                </div>
+                <div class="content_list_money">价格面议</div>
+              </li> -->
+            </ul>
+          </div>
+          
+          <!--分页-->
+            <div class="content_page" id="page_container">
+            </div>
+        </div>
+        
+        <!--地图代码-->
+        <div class="content_list">
+            <div id="allmap" style="height:400px; width:100%"></div>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<!--尾部样式代码-->
+<!--FOOTER_START-->
+<div class="bottom_bj">
+  <div class="bottom">
+    <ul class="clear">
+      <li style="border-right:1px solid #fff;"><a href="###">中国位置物流平台简介</a></li>
+      <li><a href="###">联系我们</a></li>
+    </ul>
+    <div class="bottom_txt">版权所有©2014北斗导航位置服务(北京)有限公司-京ICP备05085635号Copyright © 2014 ChinaLbs International BV.All rights reserved.</div>
+  </div>
+</div>
+<!--FOOTER_END-->
+</div>
+</body>
+</html>

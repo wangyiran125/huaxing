@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>个人中心-添加车辆</title>
+<link href="css/regist.css" type="text/css" rel="stylesheet" />
+<link href="css/send.css" type="text/css" rel="stylesheet" />
+<link href="css/indexCar.css" type="text/css" rel="stylesheet" />
+<link href="css/headfoot.css" type="text/css" rel="stylesheet" />
+<link href="css/main.css" type="text/css" rel="stylesheet" />
+<link href="css/theme.css" type="text/css" rel="stylesheet" />
+<script type="text/javascript" src="js/jquery.js" ></script>
+<!--[if lt IE 8 ]><script src="js/json2.min.js"></script><![endif]-->
+<script type="text/javascript" src="js/jquery-form.js"></script>
+<script type="text/javascript" src="js/logistics.js"></script>
+<script type="text/javascript" src="js/regvalidate.js"></script>
+<script type="text/javascript" src="js/dictHandler.js"></script>
+<script>
+	
+  $(function(){
+    verifyAndDisplayUserInfo();
+    chezhuViewTruckType();//加入车辆类型 货车
+    chezhuViewTruckCondition();//加入车体状况 厢式
+    
+    
+    //上传行车证照片图片
+	$("#truckLicense_picture").change(function(){
+		$("#f2").ajaxSubmit({
+			dataType:'json',
+			success:function(json){
+				if(json.code == 0){
+					if(json.payload != null){
+						$("#truckLicensePicture").val(decodeURI(json.payload));
+					}else{
+						alert(json.description);
+					}
+				}
+			}
+		})
+	 });
+    
+    $('#send_submit').click(function(){
+      //获取车辆照片url
+      $("#truckPicture").val(pictureUrl);
+      var licensePlateNumber=validateLicensePlateNumber();
+      var trunkLength=validateTruckLength();
+      var trunkLoad=validateIsNumDecmal('truckLoad','载重');
+      var volume=validateIsFullNum('volume','体积');
+      var contactMobile=validateMobile('contactMobile',true);
+      var alarmCall=validateMobile('alarmCall',false);
+      var devicePhone=validateMobile('devicePhone',false);
+      var brand=validateIsNull('brand','品牌型号');
+      var patcher=validaterealName('patcher','随车联系人',false);//验证姓名
+      var pass=licensePlateNumber&&trunkLength&&trunkLoad&&volume&&contactMobile&&alarmCall&&devicePhone&&brand&&patcher;
+      if (pass) {
+        var data = $('#edit-truck-form').serialize(),
+          arr = data.split('&'),
+          jsonData = {};
+
+        for (var i = 0; i < arr.length; i++) {
+          var arr2 = arr[i].split('=');
+          jsonData[arr2[0]] = decodeURI(arr2[1]);
+        };
+
+        jsonData['truckPicture'] = pictureUrl;
+        jsonData['truckLicensePicture'] = $("#truckLicensePicture").val();
+
+        $.ajax({
+          url: '../api/trucks/',
+          contentType: 'application/json',
+          data: JSON.stringify(jsonData),
+          type:'POST',
+          success: function(json){
+            if(json.code == 0){
+              // console.log();
+              logisticsAlert('添加车辆信息成功');
+              window.location.href = './truck_aidercenter.html?tar=truck';
+            }else{
+              logisticsError(json.description);
+            }
+          },
+          error: function(jqXHR, textStatus, errorThrown){
+              ajaxError(jqXHR, textStatus, errorThrown);
+          }
+        });
+      } else{
+        return;
+      };
+      
+    });
+  });
+</script>
+</head>
+
+<body>
+<div class="wrapper">
+
+<!--头部样式代码-->
+<div class="page">
+  <!--HEADER_START-->
+  <div class="head_bj">
+    <div class="head">
+      <div class="head_top clear">
+        <div class="head_top_left">
+          <ol>
+            <li style="margin-left:0px;"><a href="###">北京</a></li>
+            <li><a href="###">加入收藏</a></li>
+            <li><a href="###">了解物流平台</a></li>
+            <li><a href="###">掌上物流</a></li>
+            <li>客服热线  4000  000  000</li>
+          </ol>
+        </div>
+        <div class="head_top_right">
+          <div class="head_right_user"><a id="view_username" href="###"></a></div>
+          <div class="head_right_txt">您好，欢迎来到中国位置</div>
+          <div class="head_right_out"><a href="javascript:void(0)" onclick="logout()">退出</a></div>
+        </div>
+      </div>
+      <div class="head_xia">
+        <div class="logo"><a href="###"><img src="images/logo.png" /></a></div>
+        <div class="head_nav">
+          <ul>
+            <li style="margin-left:0px;" ><a href="./truck_index.html">首页</a></li>
+            <li ><a href="./truck_search_goods.html">我要找货</a></li>
+            <li ><a href="./truck_addplan.html">发布车源</a></li>
+            <li ><a href="./truck_my_goods.html">我的抢单</a></li>
+            <li><a href="./truck_myplan.html">我的车源</a></li>
+            <li><a href="###">车辆监控</a></li>
+            <li class="active"><a href="./truck_aidercenter.html">个人中心</a></li>
+            <li style=" margin-right:0px;"><a href="./feedback.html">意见反馈</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--HEADER_END-->
+  
+  <!--中间部分样式代码-->
+  <div class="center_cont_bj">
+    <div class="center_cont " style="padding-top:10px;">
+      <div class="send_bj">
+        <div class="send_bj_1">
+          <div class="send_list clear">
+            <div class="car_list_left">
+              <div class="send_list_left"><img src="images/pic_1.png" /></div>
+              <div  class="send_list_right send_list0ne">添加车辆信息表</div>
+            </div>
+            <div class="car_list_right">
+              <div  class="send_list_right car_txt">&nbsp;<a href="./truck_aidercenter.html?tar=truck">&nbsp;返回车辆管理 </a></div>
+            </div>
+          </div>
+          <div class="send_box">
+          	<table class="send_table">
+          		 <tr>
+                  <td class="send_title">上传车辆照片:</td>
+                  <td colspan="5">
+                	<div>
+                 	<form id="f1" action="../api/upload/images" enctype="multipart/form-data" method="post">
+						<input  type="file" id="picture" multiple  name="images" accept="image/*"/>
+					</form>
+                 </div>
+                </td>
+                   <td class="send_title">上传行车证照片:</td>
+                 <td colspan="5">
+                	<div>
+                 	<form id="f2" action="../api/upload/images" enctype="multipart/form-data" method="post">
+						<input  type="file" id="truckLicense_picture" name="images" accept="image/*"/>
+					</form>
+                 </div>
+                </td>
+                </tr>
+          	</table>
+            <form method="post" id="edit-truck-form">
+              <table class="send_table">
+                <tr class="send_tr">
+                  <td  class="send_title">车牌号:</td>
+                  <td  class="send_td"><input name="licensePlateNumber" type="text" class="send_ipt" id="licensePlateNumber"onblur="validateLicensePlateNumber()"/></td>
+                  <td  class="send_dian">*<label id="licensePlateNumber_promt" class="login_lable"></label></td>
+                  <td class="send_title">车长:</td>
+                  <td class="send_selec"><div class="send_input">
+                      <input name="truckLength" class="sent_ipt_1"  type="text" id="truckLength" onblur="validateTruckLength()" maxlength="9"/>
+                    </div>
+                    <div class="send_ipt_2">米</div></td>
+                  <td style="width:10%;" class="send_dian">*<label id="truckLength_promt" class="login_lable"></td>
+                </tr>
+                <tr class="register_tr">
+                  <td class="send_title">载重:</td>
+                  <td class="send_selec"><div class="send_input">
+                      <input name="truckLoad" class="sent_ipt_1"  type="text" id="truckLoad" onblur="validateIsNumDecmal('truckLoad','载重')" maxlength="9"/>
+                    </div>
+                    <div class="send_ipt_2">吨</div></td>
+                  <td class="send_dian">*<label id="truckLoad_promt" class="login_lable"></td>
+                  <td class="send_title">体积:</td>
+                  <td class="send_selec"><div class="send_input">
+                      <input name="volume" class="sent_ipt_1" type="text" id="volume" onblur="validateIsFullNum('volume','体积')" maxlength="9"/>
+                    </div>
+                    <div class="send_ipt_2">立方米</div></td>
+                    <td class="send_dian">*<label id="volume_promt" class="login_lable"></td>
+                </tr>
+                <tr class="register_tr">
+                  <td class="send_title">车辆常住地:</td>
+                  <td><input name="truckStation" type="text" class="send_ipt" maxlength="255"/></td>
+                  <td class="send_dian"></td>
+                </tr>
+                <tr class="register_tr">
+                  <td class="send_title">车辆类型:</td>
+                  <td class="send_selec"><select name="type" id="truckType" class="fron_select">
+                      <!-- <option value="1">货车</option> -->
+                    </select></td>
+                  <td class="send_dian">*</td>
+                  <td class="send_title">品牌型号:</td>
+                  <td><input id="brand" name="brand" type="text" class="send_ipt" onblur="validateIsNull('brand','品牌型号')" maxlength="255"/></td>
+                  <td class="send_dian">*<label id="brand_promt" class="login_lable"></td>
+                </tr>
+                <tr>
+                  <td class="send_title">车体状况:</td>
+                  <td class="send_selec"><select name="truckCondition" id="truckCondition" class="fron_select">
+                      <!-- <option value="1">箱式</option> -->
+                    </select></td>
+                  <td class="send_dian">*</td>
+                </tr>
+                <tr class="register_tr">
+                  <td class="send_title">随车联系人:</td>
+                  <td><input name="patcher" id="patcher" type="text" class="send_ipt" onblur="validaterealName('patcher','随车联系人',false)" maxlength="255"/></td>
+                  <td class="send_dian"><label id="patcher_promt" class="login_lable"></td>
+                  <td class="send_title">车主联系电话:</td>
+                  <td><input name="truckOwnerPhone" type="text" class="send_ipt" id="contactMobile" onblur="validateMobile('contactMobile',true)"  /></td>
+                  <td class="send_dian">*<label id="contactMobile_promt" class="login_lable"></td>
+                </tr>
+                <tr>
+                	<td><input id="truckPicture" type="hidden" name="truckPicture"/></td>
+                	<td><input id="truckLicensePicture" type="hidden" name="truckLicensePicture"></input></td>
+                </tr>
+                <tr>
+                  <td class="send_title">车辆识别代码:</td>
+                  <td><input name="truckUDID" type="text" class="send_ipt" maxlength="255" /></td>
+                  <td class="send_dian" colspan="3"><label class="explain_label">车辆识别代码就是汽车的身份证号，它根据国家车辆管理标准确定，包含了车辆的生产厂家、年代、车型、车身型式及代码、发动机代码及组装地点等信息。</label></td>
+                </tr>
+                <tr style="height:20px;">
+                  <td colspan="6"><div style="border-top:1px solid #e8e8e8;"></div></td>
+                </tr>
+                <tr>
+                  <td class="send_title">定位器编码:</td>
+                  <td><input name="deviceKey" id="deviceKey" type="text" class="send_ipt" maxlength="255"/></td>
+                  <td class="send_dian"></td>
+                </tr>
+                <tr>
+                  <td class="send_title">设备报警电话:</td>
+                  <td><input name="alarmCall" type="text" class="send_ipt" id="alarmCall" onblur="validateMobile('alarmCall',false)" /></td>
+                  <td class="send_dian"></td>
+                  <td><label id="alarmCall_promt" class="login_lable"></td>
+                </tr>
+                <tr>
+                  <td class="send_title">设备电话:</td>
+                  <td><input name="devicePhone" type="text" class="send_ipt" id="devicePhone" onblur="validateMobile('devicePhone',false)"/></td>
+                  <td class="send_dian"></td>
+                  <td><label id="devicePhone_promt" class="login_lable"></td>
+                </tr>
+              </table>
+            </form>
+          </div>
+          <div class="send_submit" id="send_submit"> 确认添加 </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--尾部样式代码-->
+<!--FOOTER_START-->
+<div id="bottom-bj-wrap">
+</div>
+<!--FOOTER_END-->
+</div>
+</body>
+</html>

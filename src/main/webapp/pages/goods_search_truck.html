@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>找车</title>
+<link href="css/ware.css" type="text/css" rel="stylesheet" />
+<link href="css/headfoot.css" type="text/css" rel="stylesheet" />
+<link href="css/main.css" type="text/css" rel="stylesheet" />
+<link href="css/theme.css" type="text/css" rel="stylesheet" />
+<script type="text/javascript" src="js/jquery.js"></script>
+<!--[if lt IE 8 ]><script src="js/json2.min.js"></script><![endif]-->
+<script type="text/javascript" src="js/index.js" ></script>    
+<script type="text/javascript" src="js/logistics.js"></script>
+<script type="text/javascript" src="js/dictHandler.js"></script>
+<script type="text/javascript" src="js/pagination.js"></script>
+<script type="text/javascript" src="js/search.js"></script>
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=YZC6KcQWrpeArpblSwXOQyuG"></script>
+<script type="text/javascript" src="js/mapJustShow.js"></script>
+<script type="text/javascript">
+	
+	
+    $(function(){
+        verifyAndDisplayUserInfo();
+        loadDistrict(0,$("#departureprovince"));
+        loadDistrict(0,$("#destinationprovince"));
+        viewTruckType();
+        viewTruckCondition();
+        viewTruckLength();
+        viewTruckLoad();
+        loadTruckPlans(0,PAGE_SIZE);
+        timerNameSpace.timer = setInterval(function(){
+        	loadTruckPlans(0,PAGE_SIZE);
+        },INTERVAL);
+        document.onclick = function(){
+        	clearInterval(timerNameSpace.timer);
+        	timerNameSpace.timer = setInterval(function(){
+            	loadTruckPlans(0,PAGE_SIZE);
+            },INTERVAL);
+        };
+        $("#departureprovince").change(function(){
+        	$("#departurecity").empty();
+        	if($(this).val() == -1){
+        		$("#departurecity").append("<option value='-1'>选择市</option>");
+        		return;
+        	}
+        	loadDistrict($(this).val(),$("#departurecity"));
+        });
+        $("#destinationprovince").change(function(){
+        	$("#destinationcity").empty();
+        	if($(this).val() == -1){
+        		$("#destinationcity").append("<option value='-1'>选择市</option>");
+        		return;
+        	}
+        	loadDistrict($(this).val(),$("#destinationcity"));
+        });
+
+        $('#map-mode').click(function(){
+          setTimeout(function(){//设置时间差为了地图挪到标记所处的位置
+            mapNameSpace.showLocations();
+          },100);
+          
+        });
+    })    
+</script> 
+<style>
+  #map {height: 400px; background: #ccc;}
+</style>  
+</head>
+
+<body>
+<div class="wrapper">
+  <div class="page">
+<!--头部样式代码-->
+<!--HEADER_START-->
+<div class="head_bj">
+  <div class="head">
+    <div class="head_top clear">
+      <div class="head_top_left">
+        <ol>
+          <li style="margin-left:0px;"><a href="###">北京</a></li>
+          <li><a href="###">加入收藏</a></li>
+          <li><a href="###">了解物流平台</a></li>
+          <li><a href="###">掌上物流</a></li>
+          <li>客服热线  4000  000  000</li>
+        </ol>
+      </div>
+      <div class="head_top_right">
+        <div class="head_right_user"><a id="view_username" href="javascript:void(0)"></a></div>
+        <div class="head_right_txt">您好，欢迎来到中国位置</div>
+        <div class="head_right_out"><a href="javascript:void(0)" onclick="logout()">退出</a></div>
+      </div>
+    </div>
+    <div class="head_xia">
+      <div class="logo"><a href="###"><img src="images/logo.png" /></a></div>
+      <div class="head_nav">
+        <ul>
+          <li style="margin-left:0px;"><a href="goods_index.html">首页</a></li>
+          <li><a href="goods_add.html">我要发货</a></li>
+          <li><a href="goods_search_warehouse.html">找仓库</a></li>
+          <li class="active"><a href="###">找车</a></li>
+           <li><a href="goods_aidercenter.html">个人中心</a></li>
+            <li><a href="goods_list.html">我的货物</a></li>
+          <li style=" margin-right:0px;"><a href="goods_feedback.html">意见反馈</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+<!--HEADER_END-->
+<!--中间部分样式代码-->
+<div class="center_cont_bj">
+  <div class="center_cont" style="padding-top:10px;"> 
+    <!--选择列表样式-->
+    <div class="send_bj">
+      <div class="send_bj_1">
+        <div class="b_choose">
+          <div class="center_choose">
+              <div class="choose_min">线路:</div>
+              <div class="choice_left"> 
+                <select id="departureprovince" class="fron_select_1">
+                  <option value='-1'>选择省份</option>
+                </select>
+                  <select id="departurecity" class="fron_select_1">
+                  <option value="-1">选择市</option>
+                </select>
+              </div>
+              <div class="choice_left">到&nbsp;&nbsp;
+                <select id="destinationprovince" class="fron_select_1">
+                  <option value="-1">选择省份</option>
+                </select>
+                 <select id="destinationcity" class="fron_select_1">
+                  <option value="-1">选择市</option>
+                </select>
+              </div>
+              <div class="choice_right" onclick="addSearchCondition4Truck()"><a href="javascript:void(0)"><img src="images/pic_4.png" /></a></div>
+
+            </div>
+          <div class="center_choose">
+            <div class="choose_min">车辆类型:</div>
+            <ul id="truckType">
+              <li value="0" onclick="updTruckTypeCss(this)" class="choose_a choose_active">不限</li>
+            </ul>
+          </div>
+          <div class="center_choose">
+            <div class="choose_min">车体状况:</div>
+             <ul id="truckCondition">
+              <li value="0" onclick="updTruckConditionCss(this)" class="choose_a choose_active">不限</li>
+            </ul>
+          </div>
+          <div class="center_choose">
+            <div class="choose_min">车长:</div>
+            <ul id="truckLength">
+              <li value="0" onclick="updTruckLengthCss(this)" class="choose_a choose_active">不限</li>
+            </ul>
+          </div>
+          <div class="center_choose">
+            <div class="choose_min">载重:</div>
+            <ul id="truckLoad">
+              <li value="0" onclick="updTruckLoadCss(this)" class="choose_a choose_active">不限</li>
+            </ul>
+          </div>
+          <div class="center_choose">
+            <div class="choose_min">车源类型:</div>
+            <ul id="truckPlan">
+              <li  value="0" onclick="updTruckPlan(this)" class="choose_a choose_active">不限</li>
+              <li value="2" onclick="updTruckPlan(this)" class="choose_a">本地车</li>
+              <li value="1"onclick="updTruckPlan(this)" class="choose_a">回程车</li>
+            
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!--列表部分内容-->
+    <div class="send_bj " style=" margin-top:9px;">
+      <div class="send_bj_1">
+        <div class="send_list">
+          <ul>
+            <li class="send_active top_1">
+              <div class="send_list_left"><img src="images/pic_8.png" /></div>
+              <div class="send_list_right">列表模式</div>
+            </li>
+            <li class="top_2" id="map-mode">
+              <div class="send_list_left"><img src="images/pic_9.png" /></div>
+              <div class="send_list_right">地图模式</div>
+            </li>
+          </ul>
+        </div>
+        <div class="content_list" style="display:block;"> 
+          <!--第一页-->
+          <div class="content_box">
+            <ul id="truck-plan-box">
+              <!-- <li>
+                <div class="content_list_left"><img src="images/2.png" /></div>
+                <div class="content_list_right">
+                  <h2>
+                       <a href="###"><img src="images/pic_3.png" /></a> &nbsp;河北省廊坊市三河市 &nbsp;
+                        <span>→</span> &nbsp;
+                        <a href="###"><img src="images/pic_3.png" /></a> &nbsp;山东省济南市平阴县
+                   </h2>
+                  <div class="cont_right_list">
+                    <ol>
+                      <li style="padding-left:0px;">京AT9234</li>
+                      <li>货车</li>
+                      <li>高栏</li>
+                      <li>长6.8米</li>
+                      <li>载重10吨</li>
+                      <li>回程车</li>
+                    </ol>
+                  </div>
+                  <p> <a style="padding-left:0px;" href="###">发布者：北京立方货物公司</a> 
+                        <a href="###">常住地：天津 </a></p>
+                  <p>说明：求货源，速联系</p>
+                </div>
+                <div class="content_list_money">运价面议</div>
+              </li>
+              
+               <li>
+                <div class="content_list_left"><img src="images/2.png" /></div>
+                <div class="content_list_right">
+                  <h2>
+                       <a href="###"><img src="images/pic_3.png" /></a> &nbsp;北京市 &nbsp;
+                        <span>→</span> &nbsp;
+                        <a href="###"><img src="images/pic_3.png" /></a> &nbsp;北京市
+                   </h2>
+                  <div class="cont_right_list">
+                    <ol>
+                      <li style="padding-left:0px;">京AT9234</li>
+                      <li>货车</li>
+                      <li>高栏</li>
+                      <li>长6.8米</li>
+                      <li>载重10吨</li>
+                      <li>回程车</li>
+                    </ol>
+                  </div>
+                  <p> <a style="padding-left:0px;" href="###">发布者：北京立方货物公司</a> 
+                        <a href="###">常住地：天津 </a></p>
+                  <p>说明：求货源，速联系</p>
+                </div>
+                <div class="content_list_money">1500元/吨</div>
+              </li> -->
+              
+            </ul>
+          </div>
+          
+           <!--分页-->
+            <div class="content_page" id="page_container">
+            </div>
+        </div>
+        <!--地图代码 -->
+        <div class="content_list">
+          <div id="allmap" style="height:400px; width:100%"></div>
+        </div>
+        
+        
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<!--尾部样式代码-->
+<!--FOOTER_START-->
+<div class="bottom_bj">
+  <div class="bottom">
+    <ul class="clear">
+      <li style="border-right:1px solid #fff;"><a href="###">中国位置物流平台简介</a></li>
+      <li><a href="###">联系我们</a></li>
+    </ul>
+    <div class="bottom_txt">版权所有©2014北斗导航位置服务(北京)有限公司-京ICP备05085635号Copyright © 2014 ChinaLbs International BV.All rights reserved.</div>
+  </div>
+</div>
+<!--FOOTER_END-->
+</div>
+</body>
+</html>
